@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>HefML Models Guide</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <style>
+    :root{
+      --bg:#000;
+      --card:rgba(255,255,255,0.06);
+      --txt:#eaf0ff;
+      --muted:#a3b2d7;
+      --accent:#ffb347;
+      --accent2:#62e8ff;
+      --r:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--txt);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    main{min-height:100vh;}
+    .container{
+      max-width:980px;
+      margin:0 auto;
+      padding:12px 12px 32px 12px;
+    }
+    h1{
+      font-size:20px;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+    }
+    h2{
+      font-size:17px;
+      margin-bottom:6px;
+    }
+    h3{
+      font-size:15px;
+      margin:10px 0 6px;
+    }
+    p{
+      font-size:13px;
+      line-height:1.5;
+      margin:4px 0 10px;
+      color:var(--txt);
+    }
+    ul{
+      padding-left:18px;
+      margin:4px 0 10px;
+    }
+    li{
+      font-size:13px;
+      line-height:1.5;
+      margin-bottom:4px;
+    }
+    small{color:var(--muted);font-size:11px;}
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,0.18);
+      border-radius:var(--r);
+      margin:10px 0;
+      box-shadow:0 0 0 1px rgba(255,255,255,0.03);
+    }
+    .inner{padding:12px;}
+
+    .header{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:8px 0 16px 0;
+    }
+    .brand-badge{
+      width:32px;
+      height:32px;
+      border-radius:10px;
+      background:conic-gradient(from 210deg,#ffb347,#ff6a3c,#e23955,#8a5cf7,#62e8ff,#ffb347);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 14px rgba(255,180,71,0.5);
+    }
+    .brand-badge svg{
+      width:22px;
+      height:22px;
+      display:block;
+    }
+    .header-text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .header-text span{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+    }
+
+    .example-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:8px 0 4px;
+      border-radius:12px;
+      padding:8px 10px;
+      background:rgba(255,255,255,0.03);
+    }
+    .example-meta{
+      flex:1 1 150px;
+      min-width:0;
+    }
+    .example-meta strong{font-size:13px;}
+    .example-meta div{font-size:12px;color:var(--muted);}
+
+    .example-metrics{
+      flex:1 1 160px;
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-end;
+    }
+
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      justify-content:flex-end;
+    }
+
+    .label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.07em;
+      color:var(--muted);
+    }
+
+    .oval{
+      display:inline-block;
+      min-width:64px;
+      padding:4px 10px;
+      border-radius:999px;
+      text-align:center;
+      font-size:12px;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .oval-hoops{
+      background:rgba(255,180,71,0.16);
+      border:1px solid rgba(255,180,71,0.7);
+      color:#ffe8c0;
+      box-shadow:0 0 12px rgba(255,180,71,0.25);
+    }
+    .oval-football{
+      background:rgba(98,232,255,0.16);
+      border:1px solid rgba(98,232,255,0.7);
+      color:#d3f7ff;
+      box-shadow:0 0 12px rgba(98,232,255,0.25);
+    }
+    .oval-green{
+      background:hsl(140,60%,32%);
+      border:1px solid hsl(140,70%,62%);
+      color:#eafff0;
+      box-shadow:0 0 12px rgba(86,214,132,0.55);
+    }
+    .oval-red{
+      background:hsl(0,70%,40%);
+      border:1px solid hsl(0,85%,64%);
+      color:#ffe8e8;
+      box-shadow:0 0 12px rgba(255,90,90,0.6);
+    }
+
+    .chart-wrap{
+      margin:6px 0 2px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.1);
+      overflow:hidden;
+    }
+
+    .tag{
+      display:inline-block;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.16);
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:var(--muted);
+      margin-right:4px;
+    }
+
+    .section-kicker{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+
+    .tips-grid{
+      display:grid;
+      grid-template-columns:1.2fr 1.1fr;
+      gap:10px;
+      margin:8px 0 4px;
+    }
+    .tip-box{
+      border-radius:10px;
+      padding:8px 10px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.12);
+    }
+    .tip-title{
+      font-size:12px;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .tip-body{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
+    @media (max-width:600px){
+      .container{padding:12px 8px 28px;}
+      h1{font-size:18px;}
+      h2{font-size:16px;}
+      p,li{font-size:12px;}
+      .example-row{padding:8px;}
+      .example-metrics{align-items:flex-start;}
+      .tips-grid{grid-template-columns:1fr;}
+    }
+
+    @media (max-width:420px){
+      .example-row{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .example-metrics{
+        width:100%;
+      }
+      .example-metrics{
+        align-items:flex-start;
+      }
+      .pill-row{
+        justify-content:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="container">
+
+    <div class="header">
+      <div class="brand-badge" aria-hidden="true">
+        <svg viewBox="0 0 32 32">
+          <circle cx="11" cy="11" r="8" fill="#ff9b3b" />
+          <path d="M3 11h16M11 3v16" stroke="#7c3b10" stroke-width="1.3" />
+          <path d="M5 5c2.5 2 4 4.5 4.5 7.5M17 5c-2.5 2-4 4.5-4.5 7.5"
+                stroke="#7c3b10" stroke-width="1.1" fill="none" />
+          <ellipse cx="22.5" cy="21" rx="6" ry="3.2" fill="#8b4b23" />
+          <ellipse cx="22.5" cy="21" rx="5.2" ry="2.6" fill="#a65a29" />
+          <path d="M19 21h7" stroke="#fff" stroke-width="0.9" />
+          <path d="M20.5 20.1L21 21M21.7 20.1L22.1 21M22.9 20.1L23.3 21M24.1 20.1L24.5 21"
+                stroke="#fff" stroke-width="0.7" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>HefML Models Guide</h1>
+        <span>Hoops spreads · Football weeks · How to read them</span>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="inner">
+        <p>
+          This page explains how to read the two HefML models:
+          the <strong>basketball spread &amp; win-probability model</strong> and the
+          <strong>college football weekly model</strong>.
+        </p>
+        <p>
+          Both are built to answer two questions:
+        </p>
+        <ul>
+          <li><strong>Who is more likely to win?</strong> (moneyline / win probability)</li>
+          <li><strong>What margin is most likely?</strong> (spread, plus a low–mid–high range)</li>
+        </ul>
+        <p>
+          Below you’ll see how to interpret the ovals, colors, and ranges, plus a couple of
+          simple examples so you can sanity-check real slates before you bet.
+        </p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inner">
+        <div class="section-kicker">Model 1 · College Basketball</div>
+        <h2>Hoops: Win Probability & Spread Distribution</h2>
+        <p>
+          For each game, the HefML Hoops model shows two things:
+        </p>
+        <ul>
+          <li>
+            <strong>Home win probability</strong> — the green/red oval in the upper right.
+            If it’s above 50%, the home team is the favorite. If it drops below 50%, the
+            away team is actually favored.
+          </li>
+          <li>
+            <strong>Spread distribution</strong> — the three ovals on the bottom, which
+            describe the range of plausible final margins if the game were played 100 times.
+          </li>
+        </ul>
+
+        <p>
+          The spreads are always in <strong>home – away</strong> format:
+        </p>
+        <ul>
+          <li><strong>Positive spread</strong> → home is favored by that many points.</li>
+          <li><strong>Negative spread</strong> → away is favored by that many points.</li>
+        </ul>
+
+        <h3>Reading the three spread ovals</h3>
+        <p>
+          The spread band is meant to feel like the “S-curve” of win probability, just
+          collapsed down to three key points:
+        </p>
+        <ul>
+          <li><strong>Low</strong> — roughly the <strong>10th percentile</strong> outcome.</li>
+          <li><strong>Pred</strong> — the <strong>50th percentile</strong> / median; the margin
+            you’d expect most often.</li>
+          <li><strong>High</strong> — roughly the <strong>90th percentile</strong> outcome.</li>
+        </ul>
+
+        <div class="chart-wrap">
+          <svg viewBox="0 0 260 90" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="70" x2="250" y2="70" stroke="#3b4255" stroke-width="1"/>
+            <path d="M10 60 C 60 30, 140 30, 250 60" fill="none" stroke="#ffb347" stroke-width="2"/>
+            <circle cx="70" cy="52" r="4" fill="#ffb347"/>
+            <circle cx="140" cy="40" r="4" fill="#ffb347"/>
+            <circle cx="210" cy="52" r="4" fill="#ffb347"/>
+            <text x="62" y="80" fill="#a3b2d7" font-size="9">Low</text>
+            <text x="132" y="80" fill="#a3b2d7" font-size="9">Pred</text>
+            <text x="203" y="80" fill="#a3b2d7" font-size="9">High</text>
+            <text x="120" y="17" fill="#eaf0ff" font-size="10">Spread distribution (home − away)</text>
+          </svg>
+        </div>
+
+        <h3>Example: A strong home favorite</h3>
+        <div class="example-row">
+          <div class="example-meta">
+            <strong>UC Irvine vs West Georgia</strong>
+            <div>Home favored in every scenario.</div>
+          </div>
+          <div class="example-metrics">
+            <div class="pill-row">
+              <span class="label">Home win probability</span>
+              <span class="oval oval-green">88.4%</span>
+            </div>
+            <div class="pill-row">
+              <span class="label">Spread (home − away)</span>
+            </div>
+            <div class="pill-row">
+              <span class="oval oval-hoops">Low: +3.1</span>
+              <span class="oval oval-hoops">Pred: +11.3</span>
+              <span class="oval oval-hoops">High: +29.1</span>
+            </div>
+          </div>
+        </div>
+        <p>
+          In this game, the model said something like:
+        </p>
+        <ul>
+          <li><strong>Low:</strong> home wins by about <strong>3</strong> if a lot goes wrong.</li>
+          <li><strong>Pred:</strong> home wins by about <strong>11</strong> most of the time.</li>
+          <li><strong>High:</strong> home wins by nearly <strong>30</strong> if everything clicks.</li>
+        </ul>
+        <p>
+          When the actual final lands between Pred and High (like a 20–25 point win), it’s
+          basically “things went well for the favorite,” but not an outrageous outlier.
+        </p>
+
+        <h3>When spread and win probability disagree</h3>
+        <p>
+          By default, if the home win probability is above 50%, the home spread should be
+          positive (home favored). Occasionally, though, you’ll see weird cases where:
+        </p>
+        <ul>
+          <li>The model leans one way on the spread but the moneyline is closer to a coin flip.</li>
+          <li>The public market has a team favored to <em>win</em> but effectively a dog 
+              to <em>cover</em>.</li>
+        </ul>
+        <p>
+          Those “spread vs win prob” divergences are rare in the model, but you do see
+          versions of that in actual public lines. When you do, it’s a sign to slow down
+          and understand why — pace, injuries, or garbage-time risk.
+        </p>
+
+        <h3>How to actually use this to bet</h3>
+        <div class="tips-grid">
+          <div class="tip-box">
+            <div class="tip-title">1 · Side selection</div>
+            <div class="tip-body">
+              Compare the model’s <strong>Pred</strong> spread to the public line. If the model
+              thinks the favorite should be -14.5 and the book is hanging -9.5, that’s a
+              strong edge on the favorite. If the model says -6 and the book is -12, that’s
+              value on the dog.
+            </div>
+          </div>
+          <div class="tip-box">
+            <div class="tip-title">2 · Sanity check with Low/High</div>
+            <div class="tip-body">
+              If the public line sits <strong>outside</strong> the Low/High band, the market is
+              basically saying “we think the extreme outcome is the baseline.” That’s often
+              worth a bet — or at least a much closer look.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inner">
+        <div class="section-kicker">Model 2 · College Football</div>
+        <h2>Football: Weekly HefML Portal</h2>
+        <p>
+          The HefML football model is laid out as a weekly portal: each week’s slate shows
+          the home and away teams, the model spread, and the win probability, all skinned in
+          the same oval style as Hoops.
+        </p>
+        <p>
+          Under the hood, it works similarly:
+        </p>
+        <ul>
+          <li>Each game gets a <strong>home win probability</strong> (moneyline view).</li>
+          <li>The model produces an implied <strong>point spread</strong> for the matchup.</li>
+          <li>Games are organized by <strong>week</strong> and by <strong>team schedule</strong>
+              so you can scan quickly.</li>
+        </ul>
+
+        <h3>Sample football tile</h3>
+        <div class="example-row">
+          <div class="example-meta">
+            <strong>Indiana at Ohio State</strong>
+            <div>Example Week · Road test for the visitor.</div>
+          </div>
+          <div class="example-metrics">
+            <div class="pill-row">
+              <span class="label">Home win probability</span>
+              <span class="oval oval-green">63.0%</span>
+            </div>
+            <div class="pill-row">
+              <span class="label">Model spread (home)</span>
+              <span class="oval oval-football">OSU -4.2</span>
+            </div>
+          </div>
+        </div>
+        <p>
+          Here the model is saying: Ohio State is a moderate favorite to win outright, and
+          should be around a 4–5 point favorite on the spread. If the public line is OSU -7,
+          the value is probably on Indiana +7. If the public line is OSU -2.5, the value
+          leans toward laying the small number with the home favorite.
+        </p>
+
+        <h3>Differences vs Hoops</h3>
+        <ul>
+          <li>
+            Football games have <strong>fewer possessions</strong>, so a couple of fluky
+            drives can swing the final margin more than in basketball.
+          </li>
+          <li>
+            The football model leans on <strong>power ratings, tempo, returning production,
+            and situational factors</strong>, not just raw scoring margins.
+          </li>
+          <li>
+            You’ll often use the football portal to find a <strong>short list</strong> of
+            games where the model and Vegas are off by 2–3 points or more, then layer in
+            injury / coaching news before betting.
+          </li>
+        </ul>
+
+        <div class="tips-grid">
+          <div class="tip-box">
+            <div class="tip-title">3 · Weekly scan</div>
+            <div class="tip-body">
+              Use the portal to scan each week for games where the model spread is off from
+              the public number by <strong>2+ points</strong>. Those go into the “shortlist”
+              for real bets.
+            </div>
+          </div>
+          <div class="tip-box">
+            <div class="tip-title">4 · Parlay building</div>
+            <div class="tip-body">
+              For parlays, you can combine a couple of higher-confidence favorites (big
+              win probabilities and model spreads close to the public line) with one or
+              two dogs where the model shows a clear edge vs Vegas.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inner">
+        <h3>Putting it together</h3>
+        <p>
+          In both models, the philosophy is the same:
+        </p>
+        <ul>
+          <li>Start with <strong>win probability</strong> to understand who should win and
+              how often.</li>
+          <li>Use the <strong>spread</strong> and the <strong>low / pred / high</strong>
+              band to see how the game usually plays out on the scoreboard.</li>
+          <li>Compare that to the <strong>public line</strong>. The bigger the gap, the
+              more interesting the bet.</li>
+        </ul>
+        <p>
+          The goal isn’t to predict every game perfectly. It’s to consistently find spots
+          where the model’s picture of the matchup is meaningfully different from the
+          market, and then let the edges add up over time.
+        </p>
+      </div>
+    </section>
+
+  </div>
+</main>
+</body>
+</html>
