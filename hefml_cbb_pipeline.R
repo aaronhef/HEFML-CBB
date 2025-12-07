@@ -220,7 +220,11 @@ engineer_features <- function(game_data, team_stats, power_lookup = NULL,
   league_mean_power <- if (!is.null(power_lookup)) mean(as.numeric(power_lookup), na.rm = TRUE) else 0
   gd[, home_power := if (!is.null(power_lookup)) power_lookup[homeTeam] else NA_real_]
   gd[, away_power := if (!is.null(power_lookup)) power_lookup[awayTeam] else NA_real_]
-  gd[, power_diff := fifelse(is.na(home_power - away_power), fifelse("elo_diff" %in% names(gd), elo_diff, 0), home_power - away_power)]
+  gd[, power_diff := fifelse(
+    is.na(home_power - away_power),
+    if ("elo_diff" %in% names(gd)) elo_diff else 0,
+    home_power - away_power
+  )]
   gd[, `:=`(
     home_vs_avg = fifelse(is.na(home_power), 0, home_power - league_mean_power),
     away_vs_avg = fifelse(is.na(away_power), 0, away_power - league_mean_power)
