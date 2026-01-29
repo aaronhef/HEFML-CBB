@@ -1,0 +1,621 @@
+<!doctype html><html><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>HefML Hoops Model Results</title>
+<style>
+:root{
+  --bg:#000;--card:rgba(255,255,255,.06);--txt:#eaf0ff;--muted:#a3b2d7;
+  --good:#16a34a;--bad:#dc2626;--chip:#0d1016;--chipBd:#2b2f39;
+  --home:#fbbf24;--away:#60a5fa;--accent:#3b82f6;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#000;color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial;
+}
+.container{max-width:980px;margin:0 auto;padding:12px}
+.header{
+  display:flex;align-items:center;gap:12px;padding:20px 0;
+  border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:20px;
+}
+.header .title{
+  font-weight:900;font-size:28px;letter-spacing:.02em;
+  display:flex;align-items:center;gap:10px;
+}
+.card{
+  background:var(--card);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;margin:16px 0;padding:16px;
+}
+.card-title{
+  font-size:18px;font-weight:800;margin-bottom:12px;
+  color:var(--txt);letter-spacing:.01em;
+}
+.card-subtitle{
+  font-size:13px;color:var(--muted);margin-bottom:16px;
+}
+
+/* Stats grid */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;margin:16px 0;
+}
+.stat-box{
+  background:rgba(59,130,246,.08);
+  border:1px solid rgba(59,130,246,.2);
+  border-radius:12px;padding:14px;
+}
+.stat-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);margin-bottom:6px;
+}
+.stat-value{
+  font-size:32px;font-weight:900;color:var(--txt);
+  font-variant-numeric:tabular-nums;
+}
+.stat-subvalue{
+  font-size:13px;color:var(--muted);margin-top:4px;
+}
+
+/* Tables */
+.results-table{
+  width:100%;border-collapse:collapse;font-size:13px;
+  margin-top:12px;
+}
+.results-table thead th{
+  font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);border-bottom:1px solid rgba(148,163,184,.5);
+  padding:8px 10px;text-align:left;font-weight:700;
+}
+.results-table tbody td{
+  padding:10px;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.results-table tbody tr:hover{
+  background:rgba(255,255,255,.03);
+}
+.results-table tbody tr:last-child td{
+  border-bottom:none;
+}
+.text-right{text-align:right}
+.text-center{text-align:center}
+
+/* Chips */
+.chip{
+  display:inline-block;padding:2px 8px;border-radius:999px;
+  background:var(--chip);border:1px solid var(--chipBd);
+  font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;
+}
+.chip-good{color:#34d399;background:rgba(20,40,24,.55);border-color:#194f2b}
+.chip-bad{color:#f87171;background:rgba(56,20,20,.55);border-color:#5a1f1f}
+.chip-neutral{color:#94a3b8;background:rgba(30,30,35,.55);border-color:#3a3a45}
+
+/* Progress bars */
+.progress-bar{
+  width:100%;height:8px;background:rgba(255,255,255,.08);
+  border-radius:999px;overflow:hidden;margin-top:6px;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);
+  transition:width 0.3s ease;
+}
+
+@media (max-width:600px){
+  .stats-grid{grid-template-columns:1fr}
+  .header .title{font-size:22px}
+  .stat-value{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="title">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#ff9640" stroke="#f5b27a" stroke-width="1.5"/><path d="M2,12 H22 M12,2 V22 M5,7 C10,12 14,13 19,17 M5,17 C10,13 14,12 19,7" stroke="#2b1406" stroke-width="1.5" fill="none"/></svg>
+    <span>HefML Hoops Model Results</span>
+  </div>
+</div>
+
+<!-- Overall Performance Card -->
+<div class="card">
+  <div class="card-title">Overall Performance</div>
+  <div class="card-subtitle">Predictions matched with completed games (using closest prediction to game day)</div>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-label">Total Picks</div>
+      <div class="stat-value">323</div>
+      <div class="stat-subvalue">249 same-day, 74 advance</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Pick Accuracy</div>
+      <div class="stat-value">62.5%</div>
+      <div class="stat-subvalue">202 of 323 correct</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Cover Rate</div>
+      <div class="stat-value">56.7%</div>
+      <div class="stat-subvalue">183 of 323 covered</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Avg Confidence</div>
+      <div class="stat-value">62.3%</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Mean Spread Error</div>
+      <div class="stat-value">10.1</div>
+      <div class="stat-subvalue">pts (absolute)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Median Spread Error</div>
+      <div class="stat-value">8.2</div>
+      <div class="stat-subvalue">pts (absolute)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Avg Days Before Game</div>
+      <div class="stat-value">0.3</div>
+      <div class="stat-subvalue">prediction timing</div>
+    </div>
+  </div>
+</div>
+
+<!-- Confidence Calibration -->
+<div class="card">
+  <div class="card-title">Confidence Calibration</div>
+  <div class="card-subtitle">How well does predicted confidence match actual win rate?</div>
+
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th>Confidence Bucket</th>
+        <th class="text-center">Picks</th>
+        <th class="text-center">Correct</th>
+        <th class="text-right">Actual Win %</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>&lt;50%</strong></td>
+        <td class="text-center">14</td>
+        <td class="text-center">8</td>
+        <td class="text-right"><span class="chip chip-good">57.1%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>50-55%</strong></td>
+        <td class="text-center">35</td>
+        <td class="text-center">21</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>55-60%</strong></td>
+        <td class="text-center">77</td>
+        <td class="text-center">48</td>
+        <td class="text-right"><span class="chip chip-good">62.3%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>60-65%</strong></td>
+        <td class="text-center">84</td>
+        <td class="text-center">51</td>
+        <td class="text-right"><span class="chip chip-good">60.7%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>65-70%</strong></td>
+        <td class="text-center">60</td>
+        <td class="text-center">36</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>70-75%</strong></td>
+        <td class="text-center">38</td>
+        <td class="text-center">26</td>
+        <td class="text-right"><span class="chip chip-good">68.4%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>75-80%</strong></td>
+        <td class="text-center">9</td>
+        <td class="text-center">8</td>
+        <td class="text-right"><span class="chip chip-good">88.9%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>80-85%</strong></td>
+        <td class="text-center">6</td>
+        <td class="text-center">4</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- Conference Performance -->
+<div class="card">
+  <div class="card-title">Performance by Conference</div>
+  <div class="card-subtitle">Results for picks in each conference (min 3 picks)</div>
+
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th>Conference</th>
+        <th class="text-center">Picks</th>
+        <th class="text-right">Accuracy</th>
+        <th class="text-right">Cover Rate</th>
+        <th class="text-right">Mean Error</th>
+        <th class="text-right">Median Error</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Mountain West</strong></td>
+        <td class="text-center">7</td>
+        <td class="text-right"><span class="chip chip-good">85.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">85.7%</span></td>
+        <td class="text-right">12.7</td>
+        <td class="text-right">10.8</td>
+      </tr>
+
+      <tr>
+        <td><strong>A-10</strong></td>
+        <td class="text-center">13</td>
+        <td class="text-right"><span class="chip chip-good">84.6%</span></td>
+        <td class="text-right"><span class="chip chip-good">76.9%</span></td>
+        <td class="text-right">10.5</td>
+        <td class="text-right">8.5</td>
+      </tr>
+
+      <tr>
+        <td><strong>MAC</strong></td>
+        <td class="text-center">13</td>
+        <td class="text-right"><span class="chip chip-good">76.9%</span></td>
+        <td class="text-right"><span class="chip chip-neutral">53.8%</span></td>
+        <td class="text-right">5.6</td>
+        <td class="text-right">2.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>Ivy</strong></td>
+        <td class="text-center">12</td>
+        <td class="text-right"><span class="chip chip-good">75.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right">10.7</td>
+        <td class="text-right">8.9</td>
+      </tr>
+
+      <tr>
+        <td><strong>Patriot</strong></td>
+        <td class="text-center">12</td>
+        <td class="text-right"><span class="chip chip-good">75.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">58.3%</span></td>
+        <td class="text-right">9.3</td>
+        <td class="text-right">7.0</td>
+      </tr>
+
+      <tr>
+        <td><strong>ASUN</strong></td>
+        <td class="text-center">11</td>
+        <td class="text-right"><span class="chip chip-good">72.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">72.7%</span></td>
+        <td class="text-right">12.2</td>
+        <td class="text-right">9.2</td>
+      </tr>
+
+      <tr>
+        <td><strong>SEC</strong></td>
+        <td class="text-center">14</td>
+        <td class="text-right"><span class="chip chip-good">71.4%</span></td>
+        <td class="text-right"><span class="chip chip-good">57.1%</span></td>
+        <td class="text-right">8.6</td>
+        <td class="text-right">5.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>Am. East</strong></td>
+        <td class="text-center">15</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right">12.0</td>
+        <td class="text-right">9.5</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big West</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right">9.2</td>
+        <td class="text-right">4.3</td>
+      </tr>
+
+      <tr>
+        <td><strong>MVC</strong></td>
+        <td class="text-center">6</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right">10.2</td>
+        <td class="text-right">8.8</td>
+      </tr>
+
+      <tr>
+        <td><strong>OVC</strong></td>
+        <td class="text-center">9</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right">9.8</td>
+        <td class="text-right">8.5</td>
+      </tr>
+
+      <tr>
+        <td><strong>Sun Belt</strong></td>
+        <td class="text-center">14</td>
+        <td class="text-right"><span class="chip chip-good">64.3%</span></td>
+        <td class="text-right"><span class="chip chip-good">57.1%</span></td>
+        <td class="text-right">13.4</td>
+        <td class="text-right">9.7</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big 12</strong></td>
+        <td class="text-center">11</td>
+        <td class="text-right"><span class="chip chip-good">63.6%</span></td>
+        <td class="text-right"><span class="chip chip-good">63.6%</span></td>
+        <td class="text-right">12.3</td>
+        <td class="text-right">10.1</td>
+      </tr>
+
+      <tr>
+        <td><strong>SoCon</strong></td>
+        <td class="text-center">13</td>
+        <td class="text-right"><span class="chip chip-good">61.5%</span></td>
+        <td class="text-right"><span class="chip chip-good">61.5%</span></td>
+        <td class="text-right">9.7</td>
+        <td class="text-right">7.3</td>
+      </tr>
+
+      <tr>
+        <td><strong>Southland</strong></td>
+        <td class="text-center">13</td>
+        <td class="text-right"><span class="chip chip-good">61.5%</span></td>
+        <td class="text-right"><span class="chip chip-good">61.5%</span></td>
+        <td class="text-right">10.1</td>
+        <td class="text-right">9.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>American</strong></td>
+        <td class="text-center">10</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right">9.8</td>
+        <td class="text-right">11.0</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big East</strong></td>
+        <td class="text-center">10</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right">6.5</td>
+        <td class="text-right">6.7</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big Sky</strong></td>
+        <td class="text-center">5</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right">7.7</td>
+        <td class="text-right">4.2</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big South</strong></td>
+        <td class="text-center">10</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-bad">30.0%</span></td>
+        <td class="text-right">10.1</td>
+        <td class="text-right">6.3</td>
+      </tr>
+
+      <tr>
+        <td><strong>CAA</strong></td>
+        <td class="text-center">10</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-neutral">50.0%</span></td>
+        <td class="text-right">7.6</td>
+        <td class="text-right">6.3</td>
+      </tr>
+
+      <tr>
+        <td><strong>Horizon</strong></td>
+        <td class="text-center">10</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right">7.8</td>
+        <td class="text-right">5.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>MAAC</strong></td>
+        <td class="text-center">15</td>
+        <td class="text-right"><span class="chip chip-good">60.0%</span></td>
+        <td class="text-right"><span class="chip chip-neutral">53.3%</span></td>
+        <td class="text-right">9.6</td>
+        <td class="text-right">8.2</td>
+      </tr>
+
+      <tr>
+        <td><strong>CUSA</strong></td>
+        <td class="text-center">12</td>
+        <td class="text-right"><span class="chip chip-neutral">58.3%</span></td>
+        <td class="text-right"><span class="chip chip-good">58.3%</span></td>
+        <td class="text-right">10.6</td>
+        <td class="text-right">8.7</td>
+      </tr>
+
+      <tr>
+        <td><strong>ACC</strong></td>
+        <td class="text-center">16</td>
+        <td class="text-right"><span class="chip chip-neutral">56.2%</span></td>
+        <td class="text-right"><span class="chip chip-neutral">50.0%</span></td>
+        <td class="text-right">9.0</td>
+        <td class="text-right">8.1</td>
+      </tr>
+
+      <tr>
+        <td><strong>Big Ten</strong></td>
+        <td class="text-center">18</td>
+        <td class="text-right"><span class="chip chip-neutral">55.6%</span></td>
+        <td class="text-right"><span class="chip chip-good">55.6%</span></td>
+        <td class="text-right">12.7</td>
+        <td class="text-right">9.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>NEC</strong></td>
+        <td class="text-center">11</td>
+        <td class="text-right"><span class="chip chip-neutral">54.5%</span></td>
+        <td class="text-right"><span class="chip chip-bad">36.4%</span></td>
+        <td class="text-right">7.9</td>
+        <td class="text-right">6.3</td>
+      </tr>
+
+      <tr>
+        <td><strong>MEAC</strong></td>
+        <td class="text-center">8</td>
+        <td class="text-right"><span class="chip chip-bad">37.5%</span></td>
+        <td class="text-right"><span class="chip chip-bad">25.0%</span></td>
+        <td class="text-right">8.0</td>
+        <td class="text-right">6.0</td>
+      </tr>
+
+      <tr>
+        <td><strong>Summit</strong></td>
+        <td class="text-center">6</td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+        <td class="text-right">15.5</td>
+        <td class="text-right">15.6</td>
+      </tr>
+
+      <tr>
+        <td><strong>SWAC</strong></td>
+        <td class="text-center">13</td>
+        <td class="text-right"><span class="chip chip-bad">30.8%</span></td>
+        <td class="text-right"><span class="chip chip-bad">30.8%</span></td>
+        <td class="text-right">11.0</td>
+        <td class="text-right">7.3</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- Team Performance -->
+<div class="card">
+  <div class="card-title">Performance by Team</div>
+  <div class="card-subtitle">Top 40 teams by prediction accuracy (min 3 picks)</div>
+
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th class="text-center">Picks</th>
+        <th class="text-right">Accuracy</th>
+        <th class="text-right">Cover Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Merrimack</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>VCU</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Winthrop</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Yale</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+        <td class="text-right"><span class="chip chip-good">100.0%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>App State</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Harvard</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Maine</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Wofford</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+        <td class="text-right"><span class="chip chip-good">66.7%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Incarnate Word</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Providence</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+        <td class="text-right"><span class="chip chip-bad">33.3%</span></td>
+      </tr>
+
+      <tr>
+        <td><strong>Prairie View A&amp;M</strong></td>
+        <td class="text-center">3</td>
+        <td class="text-right"><span class="chip chip-bad">0.0%</span></td>
+        <td class="text-right"><span class="chip chip-bad">0.0%</span></td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+</div>
+</body>
+</html>
+
