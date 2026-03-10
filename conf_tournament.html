@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conference Tournament Simulator 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e8e8e8;font-family:'Arial Narrow',Arial,sans-serif;min-height:100vh}
+#hdr{background:#0c0c0c;border-bottom:2px solid #e8f430;padding:10px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+#hdr h1{font-family:'Arial Black','Arial Bold',Impact,sans-serif;font-size:22px;letter-spacing:3px;color:#e8f430;text-transform:uppercase}
+.hsub{font-family:'Courier New',Courier,monospace;font-size:9px;color:#555;letter-spacing:1px}
+#hconf{font-family:'Arial Black','Arial Bold',Impact,sans-serif;font-size:16px;color:#aaa;display:none}
+#back{display:none;margin-left:auto;background:none;border:1px solid #252525;color:#555;padding:4px 12px;cursor:pointer;font-family:'Courier New',Courier,monospace;font-size:10px}
+#back:hover{border-color:#e8f430;color:#e8f430}
+#home{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:9px}
+.cc{background:#111;border:1px solid #252525;padding:13px 15px;cursor:pointer;transition:.12s;position:relative;overflow:hidden}
+.cc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:#e8f430;transform:scaleX(0);transform-origin:left;transition:.18s}
+.cc:hover{border-color:#2a2a2a;background:#181818}
+.cc:hover::after{transform:scaleX(1)}
+.cc .cn{font-family:'Arial Black','Arial Bold',Impact,sans-serif;font-size:18px;letter-spacing:1px;color:#ccc}
+.cc .cm{font-family:'Courier New',Courier,monospace;font-size:9px;color:#555;margin-top:2px}
+.cc .ct{font-family:'Courier New',Courier,monospace;font-size:10px;color:#e8f430;margin-top:6px}
+.cc .cr{font-family:'Courier New',Courier,monospace;font-size:8px;color:#555}
+#bv{display:none;padding:18px}
+.bctl{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.mb{background:none;border:1px solid #252525;color:#555;padding:5px 13px;cursor:pointer;font-family:'Courier New',Courier,monospace;font-size:10px;transition:.1s}
+.mb.on{background:#e8f430;color:#000;border-color:#e8f430;font-weight:700}
+.mb:hover:not(.on){border-color:#e8f430;color:#e8f430}
+.sb{margin-left:auto;background:#e8f430;color:#000;border:none;padding:5px 16px;cursor:pointer;font-family:'Courier New',Courier,monospace;font-size:10px;font-weight:700}
+.sb:hover{background:#fff}
+.sb:disabled{opacity:.5;cursor:default}
+#mlbl{font-family:'Courier New',Courier,monospace;font-size:9px;padding:3px 7px;border:1px solid}
+.lp{color:#94a3b8;border-color:#94a3b8}.lr{color:#ff6b35;border-color:#ff6b35}.lm{color:#a78bfa;border-color:#a78bfa}
+#si{font-family:'Courier New',Courier,monospace;font-size:9px;color:#555}
+.bwrap{overflow-x:auto;padding-bottom:10px}
+.brow{display:flex;gap:0;min-width:max-content}
+.brnd{display:flex;flex-direction:column;min-width:192px;max-width:192px;border-right:1px solid #252525;padding:0 8px 6px}
+.brnd:last-child{border-right:none}
+.rh{font-family:'Courier New',Courier,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #252525;margin-bottom:8px}
+.rgs{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:space-around}
+.mu{border-left:2px solid #252525;padding-left:6px;display:flex;flex-direction:column;gap:2px}
+.mu.dec{border-left-color:#e8f430}
+.ts{display:flex;align-items:center;gap:3px;padding:4px 7px;background:#111;border:1px solid #252525;min-height:29px;font-size:11px;font-weight:600;transition:.1s}
+.ts.click{cursor:pointer}
+.ts.click:hover{background:#181818}
+.ts.won{background:#0e1e06;border-color:#4ade80;color:#4ade80}
+.ts.lost{opacity:.3}
+.ts.uwin{border-color:#ff6b35!important;background:#160800}
+.ts.tbd{color:#555;font-style:italic;font-size:10px;font-weight:400}
+.ts .tn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts .pw{font-family:'Courier New',Courier,monospace;font-size:8px;color:#555;flex-shrink:0}
+.ts .pb{font-family:'Courier New',Courier,monospace;font-size:8px;color:#555;flex-shrink:0;min-width:24px;text-align:right}
+.udot{width:5px;height:5px;background:#ff6b35;border-radius:50%;flex-shrink:0}
+.cbox{border:2px solid #e8f430;padding:12px 18px;text-align:center;background:#0a1200;margin-top:10px;display:none}
+.cl{font-family:'Courier New',Courier,monospace;font-size:9px;color:#555;letter-spacing:2px}
+.cn2{font-family:'Arial Black','Arial Bold',Impact,sans-serif;font-size:28px;color:#e8f430;letter-spacing:2px}
+.cs{font-family:'Courier New',Courier,monospace;font-size:10px;color:#4ade80}
+.strow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;border-top:1px solid #252525;padding-top:14px}
+@media(max-width:600px){.strow{grid-template-columns:1fr}}
+.stb h3{font-family:'Arial Black','Arial Bold',Impact,sans-serif;font-size:14px;color:#555;letter-spacing:1px;margin-bottom:7px}
+.sr{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.sn{font-family:'Courier New',Courier,monospace;font-size:9px;flex:0 0 130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbar{flex:1;height:5px;background:#181818}.sfill{height:100%;background:#e8f430}
+.sp{font-family:'Courier New',Courier,monospace;font-size:9px;color:#e8f430;flex:0 0 32px;text-align:right}
+.sci{font-family:'Courier New',Courier,monospace;font-size:8px;color:#555;flex:0 0 66px;text-align:right}
+.ctbl{width:100%;border-collapse:collapse}
+.ctbl td{font-family:'Courier New',Courier,monospace;font-size:9px;padding:3px 5px;border-bottom:1px solid #252525}
+.ctbl td:last-child{color:#e8f430}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>BRACKET SIM</h1>
+  <div class="hsub">2026 CONF TOURNAMENTS</div>
+  <span id="hconf"></span>
+  <button id="back" onclick="showHome()">&#8592; ALL CONFS</button>
+</div>
+<div id="home"><div class="grid" id="cgrid"></div></div>
+<div id="bv">
+  <div class="bctl">
+    <button class="mb on" id="btn-projected" onclick="setMode('projected')">PROJECTED</button>
+    <button class="mb" id="btn-random" onclick="setMode('random')">&#127922; RANDOM</button>
+    <button class="mb" id="btn-manual" onclick="setMode('manual')">&#9999; MANUAL</button>
+    <span id="mlbl" class="lp">MODEL TOP PICK</span>
+    <span id="si"></span>
+    <button class="sb" id="simb" onclick="runSim()">RUN 10K SIM &#9654;</button>
+  </div>
+  <div class="bwrap"><div class="brow" id="brow"></div></div>
+  <div class="cbox" id="cbox">
+    <div class="cl">TOURNAMENT CHAMPION</div>
+    <div class="cn2" id="cn"></div>
+    <div class="cs" id="cs"></div>
+  </div>
+  <div class="strow">
+    <div class="stb"><h3>Championship Odds</h3><div id="sodds"><span style="font-family:'Courier New',Courier,monospace;font-size:9px;color:#555">Run sim for odds + 95% CI</span></div></div>
+    <div class="stb"><h3>Closest Matchups</h3><div id="close"></div></div>
+  </div>
+</div>
+<script>
+const GAMES=[{"id":372255,"conf":"SWAC","home":"Alabama State","away":"Alcorn State","prob":0.712,"hp":1479.0,"ap":1463.7,"round":"1st Round","notes":"SWAC Tournament - 1st Round"},{"id":372322,"conf":"Southland","home":"Texas A&M-Corpus Christi","away":"New Orleans","prob":0.4394,"hp":1560.2,"ap":1537.2,"round":"Quarterfinal","notes":"Southland Tournament - Quarterfinal"},{"id":372321,"conf":"CAA","home":"Monmouth","away":"Campbell","prob":0.392,"hp":1585.1,"ap":1581.0,"round":"Semifinal","notes":"CAA Championship - Semifinal"},{"id":372325,"conf":"Horizon","home":"Wright State","away":"Northern Kentucky","prob":0.5386,"hp":1594.2,"ap":1588.7,"round":"Semifinal","notes":"Barbasol Horizon League Championship - Semifinal"},{"id":372324,"conf":"SoCon","home":"East Tennessee State","away":"Furman","prob":0.6124,"hp":1621.5,"ap":1634.4,"round":"Final","notes":"SoCon Championship - Final"},{"id":372323,"conf":"Sun Belt","home":"Troy","away":"Georgia Southern","prob":0.4582,"hp":1610.8,"ap":1584.1,"round":"Final","notes":"Sun Belt Championship - Final"},{"id":372197,"conf":"Big Sky","home":"Montana","away":"Northern Colorado","prob":0.4563,"hp":1603.9,"ap":1591.2,"round":"3rd Round","notes":"Big Sky Championship - 3rd Round"},{"id":372256,"conf":"SWAC","home":"Grambling","away":"Mississippi Valley State","prob":0.7467,"hp":1469.0,"ap":1445.7,"round":"1st Round","notes":"SWAC Tournament - 1st Round"},{"id":372326,"conf":"CAA","home":"Hofstra","away":"Towson","prob":0.7,"hp":1610.4,"ap":1596.3,"round":"Semifinal","notes":"CAA Championship - Semifinal"},{"id":372327,"conf":"Southland","home":"UT Rio Grande Valley","away":"Nicholls","prob":0.6004,"hp":1550.1,"ap":1557.5,"round":"Quarterfinal","notes":"Southland Tournament - Quarterfinal"},{"id":372328,"conf":"WCC","home":"Gonzaga","away":"Oregon State","prob":0.8132,"hp":1718.4,"ap":1681.1,"round":"Semifinal","notes":"West Coast Conference Tournament - Semifinal"},{"id":372225,"conf":"Horizon","home":"Robert Morris","away":"Detroit Mercy","prob":0.6424,"hp":1579.1,"ap":1571.2,"round":"Semifinal","notes":"Barbasol Horizon League Championship - Semifinal"},{"id":372198,"conf":"Big Sky","home":"Eastern Washington","away":"Weber State","prob":0.5567,"hp":1592.2,"ap":1591.9,"round":"3rd Round","notes":"Big Sky Championship - 3rd Round"},{"id":372329,"conf":"WCC","home":"Saint Mary's","away":"Santa Clara","prob":0.5307,"hp":1700.8,"ap":1681.6,"round":"Semifinal","notes":"West Coast Conference Tournament - Semifinal"},{"id":372281,"conf":"Big 12","home":"Arizona State","away":"Baylor","prob":0.4205,"hp":1803.5,"ap":1813.5,"round":"1st Round","notes":"Phillips 66 Big 12 Tournament - 1st Round"},{"id":372282,"conf":"ACC","home":"Stanford","away":"Pittsburgh","prob":0.7035,"hp":1726.9,"ap":1731.9,"round":"1st Round","notes":"T. Rowe Price ACC Tournament - 1st Round"},{"id":372283,"conf":"Big 12","home":"Cincinnati","away":"Utah","prob":0.4253,"hp":1795.3,"ap":1789.2,"round":"1st Round","notes":"Phillips 66 Big 12 Tournament - 1st Round"},{"id":372284,"conf":"ACC","home":"SMU","away":"Syracuse","prob":0.7011,"hp":1731.8,"ap":1720.0,"round":"1st Round","notes":"T. Rowe Price ACC Tournament - 1st Round"},{"id":372330,"conf":"Big Ten","home":"Oregon","away":"Maryland","prob":0.5968,"hp":1801.4,"ap":1786.2,"round":"1st Round","notes":"Big Ten Tournament - 1st Round"},{"id":372285,"conf":"Am. East","home":"UMBC","away":"UMass Lowell","prob":0.6144,"hp":1554.7,"ap":1584.5,"round":"Semifinal","notes":"America East Playoffs - Semifinal"},{"id":372286,"conf":"CUSA","home":"Florida International","away":"Missouri State","prob":0.4819,"hp":1632.3,"ap":1662.8,"round":"1st Round","notes":"CUSA Championship - 1st Round"},{"id":372290,"conf":"ACC","home":"Virginia Tech","away":"Wake Forest","prob":0.4955,"hp":1708.8,"ap":1736.0,"round":"1st Round","notes":"T. Rowe Price ACC Tournament - 1st Round"},{"id":372287,"conf":"NEC","home":"Long Island University","away":"Mercyhurst","prob":0.7505,"hp":1482.0,"ap":1476.2,"round":"Final","notes":"Northeast Conference Tournament - Final"},{"id":372288,"conf":"Big 12","home":"BYU","away":"Kansas State","prob":0.6773,"hp":1793.2,"ap":1793.5,"round":"1st Round","notes":"Phillips 66 Big 12 Tournament - 1st Round"},{"id":372289,"conf":"Am. East","home":"Vermont","away":"NJIT","prob":0.9066,"hp":1587.8,"ap":1541.4,"round":"Semifinal","notes":"America East Playoffs - Semifinal"},{"id":372331,"conf":"Big Ten","home":"Northwestern","away":"Penn State","prob":0.5797,"hp":1791.8,"ap":1789.6,"round":"1st Round","notes":"Big Ten Tournament - 1st Round"},{"id":372332,"conf":"MAAC","home":"Merrimack","away":"Siena","prob":0.6003,"hp":1542.0,"ap":1528.5,"round":"Final","notes":"MAAC Championship - Final"},{"id":372291,"conf":"CUSA","home":"Jacksonville State","away":"New Mexico State","prob":0.5569,"hp":1648.3,"ap":1657.8,"round":"1st Round","notes":"CUSA Championship - 1st Round"},{"id":372292,"conf":"Big 12","home":"Colorado","away":"Oklahoma State","prob":0.5291,"hp":1796.9,"ap":1797.5,"round":"1st Round","notes":"Phillips 66 Big 12 Tournament - 1st Round"},{"id":372293,"conf":"A-10","home":"La Salle","away":"St. Bonaventure","prob":0.2835,"hp":1657.4,"ap":1694.6,"round":"1st Round","notes":"Atlantic 10 Championship - 1st Round"},{"id":372294,"conf":"SEC","home":"Kentucky","away":"LSU","prob":0.5701,"hp":1826.7,"ap":1813.7,"round":"1st Round","notes":"SEC Tournament - 1st Round"},{"id":372295,"conf":"A-10","home":"Richmond","away":"Loyola Chicago","prob":0.7564,"hp":1678.8,"ap":1677.4,"round":"1st Round","notes":"Atlantic 10 Championship - 1st Round"},{"id":372333,"conf":"Big Ten","home":"Washington","away":"USC","prob":0.5183,"hp":1778.4,"ap":1786.7,"round":"2nd Round","notes":"Big Ten Tournament - 2nd Round"},{"id":372296,"conf":"SEC","home":"Auburn","away":"Mississippi State","prob":0.7625,"hp":1851.3,"ap":1826.5,"round":"1st Round","notes":"SEC Tournament - 1st Round"},{"id":372297,"conf":"Mountain West","home":"UNLV","away":"Wyoming","prob":0.6398,"hp":1714.4,"ap":1701.0,"round":"1st Round","notes":"Mountain West Championship - 1st Round"},{"id":372298,"conf":"Big East","home":"Butler","away":"Providence","prob":0.4246,"hp":1767.7,"ap":1765.7,"round":"1st Round","notes":"Big East Tournament - 1st Round"},{"id":372299,"conf":"Mountain West","home":"Nevada","away":"Air Force","prob":0.8947,"hp":1732.7,"ap":1674.4,"round":"1st Round","notes":"Mountain West Championship - 1st Round"},{"id":372257,"conf":"MEAC","home":"Morgan State","away":"Delaware State","prob":0.7946,"hp":1489.7,"ap":1490.2,"round":"Quarterfinal","notes":"MEAC Tournament - Quarterfinal"},{"id":372300,"conf":"Big East","home":"Marquette","away":"Xavier","prob":0.5301,"hp":1795.8,"ap":1774.5,"round":"1st Round","notes":"Big East Tournament - 1st Round"},{"id":372302,"conf":"ACC","home":"Florida State","away":"California","prob":0.6013,"hp":1731.9,"ap":1702.1,"round":"2nd Round","notes":"T. Rowe Price ACC Tournament - 2nd Round"},{"id":372335,"conf":"American","home":"Memphis","away":"Tulane","prob":0.6883,"hp":1710.4,"ap":1655.5,"round":"1st Round","notes":"American Conference Championship - 1st Round"},{"id":372334,"conf":"Patriot","home":"Lehigh","away":"Boston University","prob":0.5479,"hp":1512.0,"ap":1512.6,"round":"Final","notes":"Patriot League Championship - Final"},{"id":372301,"conf":"SEC","home":"Texas","away":"Ole Miss","prob":0.7658,"hp":1815.3,"ap":1819.7,"round":"1st Round","notes":"SEC Tournament - 1st Round"},{"id":372303,"conf":"WAC","home":"Abilene Christian","away":"Tarleton State","prob":0.3994,"hp":1607.3,"ap":1616.0,"round":"1st Round","notes":"WAC Tournament - 1st Round"},{"id":372336,"conf":"Big Ten","home":"Minnesota","away":"Rutgers","prob":0.6687,"hp":1779.5,"ap":1780.0,"round":"2nd Round","notes":"Big Ten Tournament - 2nd Round"},{"id":372304,"conf":"Mountain West","home":"Colorado State","away":"Fresno State","prob":0.8299,"hp":1722.9,"ap":1690.0,"round":"1st Round","notes":"Mountain West Championship - 1st Round"},{"id":372305,"conf":"Big West","home":"UC San Diego","away":"Cal Poly","prob":0.5435,"hp":1635.1,"ap":1584.4,"round":"1st Round","notes":"Big West Championship - 1st Round"},{"id":372306,"conf":"Big East","home":"DePaul","away":"Georgetown","prob":0.4755,"hp":1745.2,"ap":1749.8,"round":"1st Round","notes":"Big East Tournament - 1st Round"},{"id":372337,"conf":"American","home":"Florida Atlantic","away":"Temple","prob":0.4629,"hp":1672.8,"ap":1671.0,"round":"1st Round","notes":"American Conference Championship - 1st Round"},{"id":372307,"conf":"SEC","home":"Oklahoma","away":"South Carolina","prob":0.7742,"hp":1833.3,"ap":1808.0,"round":"1st Round","notes":"SEC Tournament - 1st Round"},{"id":372308,"conf":"Mountain West","home":"Boise State","away":"San Jos\u00e9 State","prob":0.7817,"hp":1733.0,"ap":1691.6,"round":"1st Round","notes":"Mountain West Championship - 1st Round"},{"id":372309,"conf":"Big West","home":"UC Davis","away":"UC Santa Barbara","prob":0.5559,"hp":1607.9,"ap":1616.2,"round":"1st Round","notes":"Big West Championship - 1st Round"},{"id":372258,"conf":"MAC","home":"Miami (OH)","away":"Massachusetts","prob":0.7138,"hp":1596.0,"ap":1667.7,"round":"Quarterfinal","notes":"MAC Championship - Quarterfinal"},{"id":372310,"conf":"A-10","home":"Fordham","away":"George Washington","prob":0.2619,"hp":1657.9,"ap":1670.4,"round":"2nd Round","notes":"Atlantic 10 Championship - 2nd Round"},{"id":372311,"conf":"MAC","home":"Toledo","away":"Bowling Green","prob":0.6425,"hp":1610.0,"ap":1587.5,"round":"Quarterfinal","notes":"MAC Championship - Quarterfinal"},{"id":372259,"conf":"SWAC","home":"Texas Southern","away":"Alabama A&M","prob":0.6034,"hp":1488.1,"ap":1463.3,"round":"Quarterfinal","notes":"SWAC Tournament - Quarterfinal"},{"id":372312,"conf":"Big East","home":"Seton Hall","away":"Creighton","prob":0.3644,"hp":1759.8,"ap":1780.1,"round":"Quarterfinal","notes":"Big East Tournament - Quarterfinal"},{"id":372313,"conf":"MAC","home":"Akron","away":"Buffalo","prob":0.7275,"hp":1610.8,"ap":1581.0,"round":"Quarterfinal","notes":"MAC Championship - Quarterfinal"},{"id":372314,"conf":"A-10","home":"Duquesne","away":"Rhode Island","prob":0.6533,"hp":1673.5,"ap":1683.9,"round":"2nd Round","notes":"Atlantic 10 Championship - 2nd Round"},{"id":372260,"conf":"MEAC","home":"Norfolk State","away":"South Carolina State","prob":0.848,"hp":1522.6,"ap":1502.7,"round":"Quarterfinal","notes":"MEAC Tournament - Quarterfinal"},{"id":372315,"conf":"MAC","home":"Kent State","away":"Ohio","prob":0.6769,"hp":1612.5,"ap":1603.4,"round":"Quarterfinal","notes":"MAC Championship - Quarterfinal"},{"id":372316,"conf":"CUSA","home":"Louisiana Tech","away":"Middle Tennessee","prob":0.3781,"hp":1663.2,"ap":1656.6,"round":"Quarterfinal","notes":"CUSA Championship - Quarterfinal"},{"id":372261,"conf":"MEAC","home":"North Carolina Central","away":"Maryland Eastern Shore","prob":0.6507,"hp":1495.6,"ap":1497.7,"round":"Quarterfinal","notes":"MEAC Tournament - Quarterfinal"},{"id":372262,"conf":"SWAC","home":"Southern","away":"Arkansas-Pine Bluff","prob":0.7227,"hp":1491.7,"ap":1457.7,"round":"Quarterfinal","notes":"SWAC Tournament - Quarterfinal"},{"id":372318,"conf":"CUSA","home":"Western Kentucky","away":"Kennesaw State","prob":0.5038,"hp":1669.2,"ap":1645.2,"round":"Quarterfinal","notes":"CUSA Championship - Quarterfinal"},{"id":372317,"conf":"WAC","home":"UT Arlington","away":"Southern Utah","prob":0.4942,"hp":1618.7,"ap":1608.0,"round":"Quarterfinal","notes":"WAC Tournament - Quarterfinal"},{"id":372319,"conf":"Ivy","home":"Yale","away":"Cornell","prob":0.567,"hp":1648.1,"ap":1637.4,"round":"Semifinal","notes":"Ivy League Tournament pres. by TIAA - Semifinal"},{"id":372320,"conf":"Ivy","home":"Harvard","away":"Pennsylvania","prob":0.4973,"hp":1622.0,"ap":1616.3,"round":"Semifinal","notes":"Ivy League Tournament pres. by TIAA - Semifinal"}];
+const R={"Troy":-0.0838,"Cornell":-0.1348,"UNLV":0.2872,"Oregon":0.1961,"UT Arlington":-0.0116,"Air Force":-1.0698,"Florida State":0.2055,"Fordham":-0.5181,"Wright State":0.0773,"UT Rio Grande Valley":0.2036,"Utah":0.1505,"Northern Colorado":0.0876,"New Mexico State":-0.1143,"Wyoming":-0.2873,"California":-0.2055,"Auburn":0.5832,"Grambling":0.5405,"Furman":-0.2287,"Texas A&M-Corpus Christi":-0.1218,"Vermont":1.1364,"Xavier":-0.0603,"Georgia Southern":0.0838,"Miami (OH)":0.457,"Cincinnati":-0.1505,"New Orleans":0.1218,"East Tennessee State":0.2287,"Florida International":-0.0362,"George Washington":0.5181,"Loyola Chicago":-0.5665,"UC Santa Barbara":-0.1123,"Colorado":0.0583,"Mississippi State":-0.5832,"Seton Hall":-0.2782,"Long Island University":0.5506,"Delaware State":-0.6764,"Southern":0.479,"Kennesaw State":-0.0076,"Morgan State":0.6764,"Akron":0.491,"Baylor":0.1604,"Lehigh":0.0961,"Penn State":-0.1608,"South Carolina":-0.6161,"Boston University":-0.0961,"Alabama State":0.4526,"Fresno State":-0.7925,"Yale":0.1348,"Creighton":0.2782,"NJIT":-1.1364,"Tulane":-0.3961,"Minnesota":0.3512,"Alcorn State":-0.4526,"Cal Poly":-0.0872,"Massachusetts":-0.457,"Washington":0.0366,"Mississippi Valley State":-0.5406,"Alabama A&M":-0.2098,"Harvard":-0.0054,"St. Bonaventure":0.4636,"Nevada":1.0698,"Duquesne":0.3168,"Saint Mary's":0.0615,"Siena":-0.2034,"Bowling Green":-0.2931,"San Jos\u00e9 State":-0.6378,"Syracuse":-0.4263,"Hofstra":0.4236,"Merrimack":0.2034,"South Carolina State":-0.8595,"Middle Tennessee":0.2488,"Abilene Christian":-0.204,"Weber State":-0.1139,"Toledo":0.2931,"Richmond":0.5665,"Stanford":0.432,"Northern Kentucky":-0.0773,"Missouri State":0.0362,"Butler":-0.152,"Pittsburgh":-0.432,"Arkansas-Pine Bluff":-0.4789,"SMU":0.4263,"Nicholls":-0.2036,"Kentucky":0.1411,"Louisiana Tech":-0.2488,"Texas":0.5924,"Kansas State":-0.3707,"Mercyhurst":-0.5507,"DePaul":-0.049,"Campbell":0.2195,"Texas Southern":0.2098,"North Carolina Central":0.3111,"Southern Utah":0.0116,"Colorado State":0.7925,"Providence":0.152,"UMass Lowell":-0.2329,"Marquette":0.0603,"Rutgers":-0.3512,"Pennsylvania":0.0054,"Monmouth":-0.2195,"LSU":-0.1411,"Maryland Eastern Shore":-0.3111,"Oklahoma State":-0.0583,"Kent State":0.3698,"Maryland":-0.1961,"Rhode Island":-0.3168,"Temple":0.0743,"Ohio":-0.3698,"Arizona State":-0.1604,"Ole Miss":-0.5924,"Georgetown":0.049,"La Salle":-0.4636,"Boise State":0.6378,"Florida Atlantic":-0.0743,"UMBC":0.2329,"BYU":0.3707,"Robert Morris":0.2929,"Jacksonville State":0.1143,"Tarleton State":0.204,"Oklahoma":0.6161,"Gonzaga":0.7355,"UC Davis":0.1123,"Norfolk State":0.8595,"Santa Clara":-0.0615,"UC San Diego":0.0872,"Virginia Tech":-0.009,"Northwestern":0.1608,"Memphis":0.3961,"Detroit Mercy":-0.2929,"Wake Forest":0.009,"Montana":-0.0876,"Towson":-0.4237,"USC":-0.0366,"Eastern Washington":0.1139,"Western Kentucky":0.0076,"Oregon State":-0.7355,"Buffalo":-0.491,"Missouri":0.4,"Tennessee":0.75,"Georgia":0.5,"Texas A&M":0.6,"Florida":1.45,"Vanderbilt":0.8,"Alabama":1.1,"Arkansas":0.95,"Iowa State":0.85,"UCF":0.4,"West Virginia":0.45,"TCU":0.6,"Texas Tech":0.95,"Arizona":1.6,"Houston":1.25,"Kansas":1.05,"Ohio State":0.5,"Indiana":0.3,"Wisconsin":0.75,"Purdue":0.6,"UCLA":0.65,"Michigan":1.3,"Illinois":0.9,"Nebraska":1.0,"Michigan State":0.95,"NC State":0.4,"Louisville":0.55,"Clemson":0.65,"Virginia":1.15,"Miami":0.9,"Duke":1.5,"North Carolina":0.8,"St. John's":1.2,"UConn":1.1,"Villanova":0.85,"Utah State":0.9,"Grand Canyon":0.65,"San Diego State":0.8,"New Mexico":0.7,"Iowa":0.55};
+
+const BD = {
+‘SEC’: {
+rounds: [‘1st Round’,‘2nd Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘Kentucky’,a:‘LSU’},{t:‘g’,h:‘Auburn’,a:‘Mississippi State’},{t:‘g’,h:‘Texas’,a:‘Ole Miss’},{t:‘g’,h:‘Oklahoma’,a:‘South Carolina’}],
+[{t:‘br1’,bye:‘Missouri’,s:0},{t:‘br1’,bye:‘Tennessee’,s:1},{t:‘br1’,bye:‘Georgia’,s:2},{t:‘br1’,bye:‘Texas A&M’,s:3}],
+[{t:‘bpv’,bye:‘Florida’,s:0},{t:‘bpv’,bye:‘Vanderbilt’,s:1},{t:‘bpv’,bye:‘Alabama’,s:2},{t:‘bpv’,bye:‘Arkansas’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+},
+‘Big 12’: {
+rounds: [‘1st Round’,‘2nd Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘Arizona State’,a:‘Baylor’},{t:‘g’,h:‘Cincinnati’,a:‘Utah’},{t:‘g’,h:‘BYU’,a:‘Kansas State’},{t:‘g’,h:‘Colorado’,a:‘Oklahoma State’}],
+[{t:‘br1’,bye:‘Iowa State’,s:0},{t:‘br1’,bye:‘UCF’,s:1},{t:‘br1’,bye:‘West Virginia’,s:2},{t:‘br1’,bye:‘TCU’,s:3}],
+[{t:‘bpv’,bye:‘Texas Tech’,s:0},{t:‘bpv’,bye:‘Arizona’,s:1},{t:‘bpv’,bye:‘Houston’,s:2},{t:‘bpv’,bye:‘Kansas’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+},
+‘Big Ten’: {
+rounds: [‘1st Round’,‘2nd Round’,‘3rd Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘Oregon’,a:‘Maryland’},{t:‘g’,h:‘Northwestern’,a:‘Penn State’}],
+[{t:‘br1’,bye:‘Iowa’,s:0},{t:‘g’,h:‘Washington’,a:‘USC’},{t:‘br1’,bye:‘Indiana’,s:1},{t:‘g’,h:‘Minnesota’,a:‘Rutgers’}],
+[{t:‘bpv’,bye:‘Ohio State’,s:0},{t:‘bpv’,bye:‘Wisconsin’,s:1},{t:‘bpv’,bye:‘Purdue’,s:2},{t:‘bpv’,bye:‘UCLA’,s:3}],
+[{t:‘bpv’,bye:‘Michigan’,s:0},{t:‘bpv’,bye:‘Illinois’,s:1},{t:‘bpv’,bye:‘Nebraska’,s:2},{t:‘bpv’,bye:‘Michigan State’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+},
+‘ACC’: {
+rounds: [‘1st Round’,‘2nd Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘Stanford’,a:‘Pittsburgh’},{t:‘g’,h:‘SMU’,a:‘Syracuse’},{t:‘g’,h:‘Virginia Tech’,a:‘Wake Forest’},{t:‘g’,h:‘Florida State’,a:‘California’}],
+[{t:‘br1’,bye:‘NC State’,s:0},{t:‘br1’,bye:‘Louisville’,s:1},{t:‘pt’,s:3},{t:‘br1’,bye:‘Clemson’,s:2}],
+[{t:‘bpv’,bye:‘Virginia’,s:0},{t:‘bpv’,bye:‘Miami’,s:1},{t:‘bpv’,bye:‘Duke’,s:2},{t:‘bpv’,bye:‘North Carolina’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+},
+‘Big East’: {
+rounds: [‘1st Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘Butler’,a:‘Providence’},{t:‘g’,h:‘Marquette’,a:‘Xavier’},{t:‘g’,h:‘DePaul’,a:‘Georgetown’},{t:‘g’,h:‘Seton Hall’,a:‘Creighton’}],
+[{t:‘br1’,bye:“St. John’s”,s:0},{t:‘br1’,bye:‘UConn’,s:1},{t:‘br1’,bye:‘Villanova’,s:2},{t:‘pt’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+},
+‘Mountain West’: {
+rounds: [‘1st Round’,‘Quarterfinal’,‘Semifinal’,‘Final’],
+slots: [
+[{t:‘g’,h:‘UNLV’,a:‘Wyoming’},{t:‘g’,h:‘Nevada’,a:‘Air Force’},{t:‘g’,h:‘Colorado State’,a:‘Fresno State’},{t:‘g’,h:‘Boise State’,a:‘San Jos\u00e9 State’}],
+[{t:‘br1’,bye:‘Utah State’,s:0},{t:‘br1’,bye:‘Grand Canyon’,s:1},{t:‘br1’,bye:‘San Diego State’,s:2},{t:‘br1’,bye:‘New Mexico’,s:3}],
+[{t:‘pv’,a:0,b:1},{t:‘pv’,a:2,b:3}],
+[{t:‘pv’,a:0,b:1}]
+]
+}
+};
+
+const sig = x => 1/(1+Math.exp(-x));
+const mle = (h,a) => sig((R[h]||0)-(R[a]||0));
+const GL = {};
+GAMES.forEach(g=>{
+GL[g.home+’|’+g.away]=g;
+GL[g.away+’|’+g.home]={…g,prob:1-g.prob,home:g.away,away:g.home};
+});
+function gp(h,a){ return (GL[h+’|’+a]||{}).prob ?? mle(h,a); }
+const CG={};
+GAMES.forEach(g=>(CG[g.conf]||(CG[g.conf]=[])).push(g));
+
+function pick(h,a,p,mode,ov){
+if(ov) return ov;
+if(!h||h===’?’) return a; if(!a||a===’?’) return h;
+return mode===‘projected’?(p>=.5?h:a):(Math.random()<p?h:a);
+}
+
+function simBD(conf,mode,OV){
+const def=BD[conf], allW={};
+const log={};
+def.slots.forEach((slots,ri)=>{
+const rname=def.rounds[ri];
+const prevW=ri>0?(allW[ri-1]||[]):[];
+const r1W=allW[0]||[];
+const rLog=[],rW=[];
+slots.forEach((s,si)=>{
+let h,a,p,key;
+if(s.t===‘g’){
+const g=GL[s.h+’|’+s.a]||GL[s.a+’|’+s.h];
+h=g?g.home:s.h; a=g?g.away:s.a; p=g?g.prob:mle(s.h,s.a); key=‘g_’+(g?g.id:h+a);
+} else if(s.t===‘br1’){
+h=s.bye; a=r1W[s.s]||’?’; p=gp(h,a); key=‘br1_’+rname+’*’+si;
+} else if(s.t===‘bpv’){
+h=s.bye; a=prevW[s.s]||’?’; p=gp(h,a); key=’bpv*’+rname+’*’+si;
+} else if(s.t===‘pt’){
+rW.push(r1W[s.s]||’?’); return;
+} else if(s.t===‘pv’){
+h=prevW[s.a]||’?’; a=prevW[s.b]||’?’;
+p=(h!==’?’&&a!==’?’)?gp(h,a):.5; key=’pv*’+rname+’_’+si;
+}
+const w=pick(h,a,p,mode,OV&&OV[key]);
+rLog.push({h,a,p,w,key}); rW.push(w);
+});
+log[rname]=rLog; allW[ri]=rW;
+});
+const lastRi=def.slots.length-1;
+return{log,champion:allW[lastRi]&&allW[lastRi][0]};
+}
+
+function simGen(conf,mode,OV){
+const gs=CG[conf]||[];
+const RO=[‘1st Round’,‘2nd Round’,‘3rd Round’,‘Quarterfinal’,‘Semifinal’,‘Final’];
+const byR={};
+gs.forEach(g=>(byR[g.round]||(byR[g.round]=[])).push(g));
+const dRnds=[…new Set(gs.map(g=>g.round))].sort((a,b)=>RO.indexOf(a)-RO.indexOf(b));
+const lastDRi=RO.indexOf(dRnds[dRnds.length-1]);
+const allRnds=[…dRnds,…RO.slice(lastDRi+1)];
+const log={}; let pool=[];
+dRnds.forEach(r=>{
+const rLog=[],winners=[];
+(byR[r]||[]).forEach(g=>{
+const key=‘g_’+g.id, ov=OV&&OV[key];
+const w=pick(g.home,g.away,g.prob,mode,ov);
+rLog.push({h:g.home,a:g.away,p:g.prob,w,key}); winners.push(w);
+});
+log[r]=rLog; pool=winners;
+});
+allRnds.filter(r=>!byR[r]).forEach(r=>{
+const rLog=[],winners=[];
+for(let i=0;i<pool.length;i+=2){
+const h=pool[i],a=pool[i+1]; if(!h||!a) continue;
+const p=gp(h,a), key=r+’_’+i, ov=OV&&OV[key];
+const w=pick(h,a,p,mode,ov);
+rLog.push({h,a,p,w,key}); winners.push(w);
+}
+log[r]=rLog; pool=winners;
+});
+return{log,champion:pool[0]||null};
+}
+
+function simConf(conf,mode,OV){ return BD[conf]?simBD(conf,mode,OV):simGen(conf,mode,OV); }
+
+let cur=null, mode=‘projected’, OV={}, simRes=null;
+
+function showHome(){
+document.getElementById(‘home’).style.display=‘block’;
+document.getElementById(‘bv’).style.display=‘none’;
+document.getElementById(‘back’).style.display=‘none’;
+document.getElementById(‘hconf’).style.display=‘none’;
+cur=null; simRes=null;
+}
+
+function buildHome(){
+const confs=[…new Set(GAMES.map(g=>g.conf))].sort();
+document.getElementById(‘cgrid’).innerHTML=confs.map(conf=>{
+const gs=CG[conf]||[], def=BD[conf];
+const dT=new Set(); gs.forEach(g=>{dT.add(g.home);dT.add(g.away);});
+let byeN=0;
+if(def) def.slots.forEach(sl=>sl.forEach(s=>{if(s.t===‘br1’||s.t===‘bpv’) byeN++;}));
+let topT=’’,topR=-99;
+dT.forEach(t=>{const r=R[t]||0;if(r>topR){topR=r;topT=t;}});
+if(def) def.slots.forEach(sl=>sl.forEach(s=>{const t=s.bye;if(t&&(R[t]||0)>topR){topR=R[t]||0;topT=t;}}));
+const rsign=topR>0?’+’:’’;
+return ‘<div class=“cc” onclick=“openConf('’ + conf.replace(/’/g,”\’”) + ‘')”>’
++ ‘<div class="cn">’+conf+’</div>’
++ ‘<div class="cm">’+( dT.size+byeN)+’ teams’+(def?’ · full bracket’:’’)+’</div>’
++ (topT?’<div class="ct">’+topT+’</div><div class="cr">MLE ‘+rsign+topR.toFixed(2)+’</div>’:’’)
++ ‘</div>’;
+}).join(’’);
+}
+
+function openConf(conf){
+cur=conf; OV={}; simRes=null;
+document.getElementById(‘home’).style.display=‘none’;
+document.getElementById(‘bv’).style.display=‘block’;
+document.getElementById(‘back’).style.display=‘inline-block’;
+document.getElementById(‘hconf’).textContent=’ / ‘+conf;
+document.getElementById(‘hconf’).style.display=‘inline’;
+document.getElementById(‘sodds’).innerHTML=’<span style="font-size:9px;color:#555">Run sim for odds + 95% CI</span>’;
+document.getElementById(‘si’).textContent=’’;
+setMode(‘projected’);
+}
+
+function setMode(m){
+mode=m;
+document.querySelectorAll(’.mb’).forEach(b=>b.classList.remove(‘on’));
+document.getElementById(‘btn-’+m).classList.add(‘on’);
+const lbl=document.getElementById(‘mlbl’);
+const map={projected:[‘MODEL TOP PICK’,‘lp’],random:[‘RANDOM DRAW’,‘lr’],manual:[‘MANUAL OVERRIDE’,‘lm’]};
+const[txt,cls]=map[m]; lbl.textContent=txt; lbl.className=cls;
+if(m!==‘manual’) OV={};
+renderBracket();
+}
+
+function tslot(team,prob,won,lost,upset,key){
+if(!team||team===’?’) return ‘<div class="ts tbd"><span class="tn">TBD</span></div>’;
+const pct=Math.round(prob*100);
+const r=R[team]; const rs=r!=null?(r>0?’+’:’’)+r.toFixed(2):’–’;
+const cls=[‘ts’];
+if(mode===‘manual’) cls.push(‘click’);
+if(won) cls.push(‘won’); if(lost) cls.push(‘lost’);
+if(upset&&won) cls.push(‘uwin’);
+const oc=mode===‘manual’?‘onclick=“clickSlot('’ + key + ‘','’ + team.replace(/’/g,”\’”) + ‘')”’:’’;
+return ‘<div class=”’+cls.join(’ ‘)+’” ‘+oc+’ title=”’+team+’ | MLE:’+rs+’ | ‘+pct+’%”>’
++(upset&&won?’<div class="udot"></div>’:’’)
++’<span class="tn">’+team+’</span><span class="pw">’+rs+’</span><span class="pb">’+pct+’%</span>’
++’</div>’;
+}
+
+function renderBracket(){
+if(!cur) return;
+const{log,champion}=simConf(cur,mode,OV);
+const def=BD[cur]; const rounds=def?def.rounds:Object.keys(log);
+let html=’’;
+rounds.forEach(rnd=>{
+const mus=(log[rnd]||[]);
+if(!mus.length) return;
+html+=’<div class="brnd"><div class="rh">’+rnd+’</div><div class="rgs">’;
+mus.forEach(mu=>{
+const w=mu.w, decided=mu.h&&mu.a&&mu.h!==’?’&&mu.a!==’?’;
+const hw=w===mu.h, aw=w===mu.a;
+const hUp=hw&&mu.p<.45, aUp=aw&&mu.p>.55;
+html+=’<div class="mu'+(decided&&w?' dec':'')+'">’;
+html+=tslot(mu.h,mu.p,hw,aw&&decided,hUp,mu.key);
+html+=tslot(mu.a,1-mu.p,aw,hw&&decided,aUp,mu.key);
+html+=’</div>’;
+});
+html+=’</div></div>’;
+});
+document.getElementById(‘brow’).innerHTML=html;
+const cb=document.getElementById(‘cbox’);
+if(champion&&champion!==’?’){
+cb.style.display=‘block’;
+document.getElementById(‘cn’).textContent=champion;
+const r=R[champion];
+document.getElementById(‘cs’).textContent=r!=null?‘MLE: ‘+(r>0?’+’:’’)+r.toFixed(3):’’;
+} else cb.style.display=‘none’;
+renderClose();
+if(simRes) renderOdds();
+}
+
+function clickSlot(key,team){
+if(mode!==‘manual’) return;
+if(OV[key]===team) delete OV[key]; else{OV={};OV[key]=team;}
+renderBracket();
+}
+
+function runSim(){
+if(!cur) return;
+const btn=document.getElementById(‘simb’);
+btn.disabled=true; btn.textContent=‘SIMULATING…’;
+setTimeout(()=>{
+const N=10000, cnt={};
+for(let i=0;i<N;i++){const{champion}=simConf(cur,‘random’,null);if(champion&&champion!==’?’) cnt[champion]=(cnt[champion]||0)+1;}
+simRes=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([t,c])=>{
+const p=c/N,z=1.96,d=1+z*z/N;
+const lo=Math.max(0,(p+z*z/(2*N)-z*Math.sqrt(p*(1-p)/N+z*z/(4*N*N)))/d);
+const hi=Math.min(1,(p+z*z/(2*N)+z*Math.sqrt(p*(1-p)/N+z*z/(4*N*N)))/d);
+return{t,p,lo,hi};
+});
+renderOdds();
+btn.disabled=false; btn.textContent=‘RERUN 10K SIM’;
+document.getElementById(‘si’).textContent=‘n=10,000’;
+},50);
+}
+
+function renderOdds(){
+if(!simRes) return;
+document.getElementById(‘sodds’).innerHTML=simRes.map(({t,p,lo,hi})=>{
+const pct=Math.round(p*100),lp=Math.round(lo*100),hp=Math.round(hi*100);
+return ‘<div class="sr"><span class="sn" title="'+t+'">’+t+’</span>’
++’<div class="sbar"><div class="sfill" style="width:'+pct+'%"></div></div>’
++’<span class="sp">’+pct+’%</span><span class="sci">[’+lp+’–’+hp+’%]</span></div>’;
+}).join(’’);
+}
+
+function renderClose(){
+const gs=[…(CG[cur]||[])].sort((a,b)=>Math.abs(a.prob-.5)-Math.abs(b.prob-.5));
+document.getElementById(‘close’).innerHTML=’<table class="ctbl">’
++gs.slice(0,6).map(g=>’<tr><td>’+g.home+’ vs ‘+g.away+’</td><td>’+Math.round(g.prob*100)+’–’+Math.round((1-g.prob)*100)+’</td></tr>’).join(’’)
++’</table>’;
+}
+
+buildHome();
+</script>
+
+</body>
+</html>
