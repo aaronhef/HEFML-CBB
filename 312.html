@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HefML · March 12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0e;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #1f2430;
+    --gold: #f0b429;
+    --gold-dim: #7a5c14;
+    --green: #22c55e;
+    --green-dim: #14532d;
+    --red: #ef4444;
+    --red-dim: #450a0a;
+    --blue: #38bdf8;
+    --blue-dim: #0c3a52;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #374151;
+    --accent: #f0b429;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘DM Sans’, sans-serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* HEADER */
+.header {
+position: sticky;
+top: 0;
+z-index: 100;
+background: rgba(10,11,14,0.92);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-bottom: 1px solid var(–border);
+padding: 12px 16px 10px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.header-left {
+display: flex;
+align-items: baseline;
+gap: 8px;
+}
+
+.logo {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 28px;
+letter-spacing: 2px;
+color: var(–gold);
+line-height: 1;
+}
+
+.logo-dot {
+width: 6px; height: 6px;
+background: var(–gold);
+border-radius: 50%;
+display: inline-block;
+margin-bottom: 2px;
+}
+
+.header-date {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+color: var(–text-muted);
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+
+.header-count {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+color: var(–text-muted);
+background: var(–surface2);
+border: 1px solid var(–border);
+padding: 3px 8px;
+border-radius: 20px;
+}
+
+/* FILTER BAR */
+.filter-bar {
+display: flex;
+gap: 6px;
+padding: 10px 16px;
+overflow-x: auto;
+scrollbar-width: none;
+border-bottom: 1px solid var(–border);
+background: var(–surface);
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+flex-shrink: 0;
+padding: 5px 12px;
+border-radius: 20px;
+border: 1px solid var(–border);
+background: transparent;
+color: var(–text-muted);
+font-family: ‘DM Sans’, sans-serif;
+font-size: 12px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.15s;
+white-space: nowrap;
+}
+.filter-btn.active {
+background: var(–gold);
+color: #000;
+border-color: var(–gold);
+font-weight: 600;
+}
+
+/* EDGE ALERT */
+.edge-alert {
+margin: 12px 16px;
+background: linear-gradient(135deg, #1a1200, #110d00);
+border: 1px solid var(–gold-dim);
+border-radius: 12px;
+padding: 12px 14px;
+animation: pulseGold 3s ease-in-out infinite;
+}
+
+@keyframes pulseGold {
+0%, 100% { border-color: var(–gold-dim); box-shadow: 0 0 0 0 rgba(240,180,41,0); }
+50% { border-color: var(–gold); box-shadow: 0 0 12px 0 rgba(240,180,41,0.15); }
+}
+
+.edge-alert-label {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 11px;
+letter-spacing: 2px;
+color: var(–gold);
+margin-bottom: 8px;
+}
+
+.edge-picks {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.edge-pick {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.edge-pick-team {
+font-weight: 600;
+font-size: 14px;
+color: var(–text);
+}
+
+.edge-pick-line {
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+color: var(–text-muted);
+margin-left: 6px;
+}
+
+.edge-pick-gap {
+font-family: ‘DM Mono’, monospace;
+font-size: 13px;
+font-weight: 500;
+color: var(–gold);
+background: rgba(240,180,41,0.1);
+padding: 2px 8px;
+border-radius: 6px;
+}
+
+/* SECTION LABEL */
+.section-label {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 12px;
+letter-spacing: 2px;
+color: var(–text-dim);
+padding: 14px 16px 6px;
+text-transform: uppercase;
+}
+
+/* GAME CARD */
+.games-list {
+display: flex;
+flex-direction: column;
+gap: 1px;
+padding: 0 0 100px;
+}
+
+.game-card {
+background: var(–surface);
+margin: 0 0 1px;
+padding: 14px 16px;
+border-bottom: 1px solid var(–border);
+cursor: pointer;
+transition: background 0.12s;
+position: relative;
+overflow: hidden;
+}
+
+.game-card:active { background: var(–surface2); }
+
+.game-card.has-edge::before {
+content: ‘’;
+position: absolute;
+left: 0; top: 0; bottom: 0;
+width: 3px;
+background: var(–gold);
+}
+
+.game-card.strong-edge::before {
+background: linear-gradient(180deg, var(–gold), #ff8c00);
+width: 4px;
+}
+
+.game-meta {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+}
+
+.game-time {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+color: var(–text-muted);
+letter-spacing: 0.5px;
+}
+
+.game-badges {
+display: flex;
+gap: 4px;
+align-items: center;
+}
+
+.badge {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+padding: 2px 6px;
+border-radius: 4px;
+letter-spacing: 0.5px;
+font-weight: 500;
+}
+
+.badge-edge {
+background: rgba(240,180,41,0.15);
+color: var(–gold);
+border: 1px solid rgba(240,180,41,0.3);
+}
+
+.badge-conf {
+background: var(–surface2);
+color: var(–text-muted);
+border: 1px solid var(–border);
+}
+
+/* MATCHUP ROW */
+.matchup {
+display: grid;
+grid-template-columns: 1fr auto 1fr;
+align-items: center;
+gap: 8px;
+}
+
+.team-block { display: flex; flex-direction: column; gap: 2px; }
+.team-block.away { text-align: right; align-items: flex-end; }
+.team-block.home { text-align: left; align-items: flex-start; }
+
+.team-label {
+font-size: 9px;
+font-family: ‘DM Mono’, monospace;
+color: var(–text-dim);
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+
+.team-name {
+font-size: 15px;
+font-weight: 600;
+color: var(–text);
+line-height: 1.2;
+}
+
+.team-name.predicted-winner {
+color: #fff;
+}
+
+.team-prob {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+font-weight: 500;
+margin-top: 2px;
+}
+
+.prob-home { color: var(–blue); }
+.prob-away { color: var(–text-muted); }
+
+/* VS / SPREAD DIVIDER */
+.vs-divider {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 3px;
+}
+
+.vs-text {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 11px;
+color: var(–text-dim);
+letter-spacing: 1px;
+}
+
+.model-margin {
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+font-weight: 500;
+color: var(–green);
+background: rgba(34,197,94,0.1);
+padding: 1px 5px;
+border-radius: 4px;
+white-space: nowrap;
+}
+
+/* EXPANDED DETAIL */
+.game-detail {
+display: none;
+margin-top: 12px;
+padding-top: 12px;
+border-top: 1px solid var(–border);
+}
+
+.game-card.expanded .game-detail { display: block; }
+
+.detail-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
+
+.detail-stat {
+background: var(–surface2);
+border-radius: 8px;
+padding: 8px 10px;
+}
+
+.detail-stat-label {
+font-size: 10px;
+font-family: ‘DM Mono’, monospace;
+color: var(–text-dim);
+letter-spacing: 0.5px;
+text-transform: uppercase;
+margin-bottom: 3px;
+}
+
+.detail-stat-value {
+font-size: 16px;
+font-family: ‘DM Mono’, monospace;
+font-weight: 500;
+color: var(–text);
+}
+
+.detail-stat-value.positive { color: var(–green); }
+.detail-stat-value.negative { color: var(–red); }
+.detail-stat-value.edge { color: var(–gold); }
+
+.edge-bar-wrap {
+margin-top: 10px;
+background: var(–surface2);
+border-radius: 8px;
+padding: 8px 10px;
+}
+
+.edge-bar-label {
+font-size: 10px;
+font-family: ‘DM Mono’, monospace;
+color: var(–text-dim);
+letter-spacing: 0.5px;
+text-transform: uppercase;
+margin-bottom: 6px;
+display: flex;
+justify-content: space-between;
+}
+
+.edge-bar-track {
+height: 6px;
+background: var(–border);
+border-radius: 3px;
+overflow: hidden;
+}
+
+.edge-bar-fill {
+height: 100%;
+border-radius: 3px;
+transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.bet-rec {
+margin-top: 10px;
+background: rgba(240,180,41,0.08);
+border: 1px solid rgba(240,180,41,0.2);
+border-radius: 8px;
+padding: 8px 10px;
+font-size: 13px;
+color: var(–gold);
+font-weight: 500;
+}
+
+.bet-rec-label {
+font-size: 9px;
+font-family: ‘DM Mono’, monospace;
+color: var(–gold-dim);
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-bottom: 3px;
+}
+
+/* STARS */
+.stars { color: var(–gold); font-size: 11px; }
+
+/* PICK INDICATOR */
+.pick-arrow {
+font-size: 10px;
+margin-right: 2px;
+}
+
+.predicted-winner-tag {
+display: inline-flex;
+align-items: center;
+gap: 3px;
+font-size: 9px;
+font-family: ‘DM Mono’, monospace;
+background: rgba(34,197,94,0.12);
+color: var(–green);
+border: 1px solid rgba(34,197,94,0.2);
+padding: 1px 5px;
+border-radius: 4px;
+letter-spacing: 0.5px;
+margin-top: 2px;
+}
+
+/* FOOTER */
+.footer-note {
+position: fixed;
+bottom: 0;
+left: 0; right: 0;
+background: rgba(10,11,14,0.96);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+border-top: 1px solid var(–border);
+padding: 10px 16px;
+padding-bottom: max(10px, env(safe-area-inset-bottom));
+text-align: center;
+font-size: 10px;
+font-family: ‘DM Mono’, monospace;
+color: var(–text-dim);
+letter-spacing: 0.5px;
+}
+
+/* FADE IN */
+.game-card {
+opacity: 0;
+transform: translateY(8px);
+animation: fadeUp 0.3s forwards;
+}
+@keyframes fadeUp {
+to { opacity: 1; transform: translateY(0); }
+}
+
+.hidden { display: none !important; }
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">HefML</div>
+    <div class="header-date">Mar 12 · 2026</div>
+  </div>
+  <div class="header-count" id="gameCount">29 Games</div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all')">All Games</button>
+  <button class="filter-btn" onclick="setFilter('edge')">🔥 Edges</button>
+  <button class="filter-btn" onclick="setFilter('home')">Home Favored</button>
+  <button class="filter-btn" onclick="setFilter('away')">Away Pick</button>
+  <button class="filter-btn" onclick="setFilter('coin')">Coin Flips</button>
+</div>
+
+<div class="edge-alert">
+  <div class="edge-alert-label">⚡ Top Model Edges vs Market</div>
+  <div class="edge-picks">
+    <div class="edge-pick">
+      <div><span class="edge-pick-team">Providence</span><span class="edge-pick-line">+11.5 @ St. John's</span></div>
+      <div class="edge-pick-gap">−12.3 pts</div>
+    </div>
+    <div class="edge-pick">
+      <div><span class="edge-pick-team">Creighton</span><span class="edge-pick-line">ML / +2.5 @ Seton Hall</span></div>
+      <div class="edge-pick-gap">−7.1 pts</div>
+    </div>
+    <div class="edge-pick">
+      <div><span class="edge-pick-team">St. Bonaventure</span><span class="edge-pick-line">+4 @ George Mason</span></div>
+      <div class="edge-pick-gap">−4.3 pts</div>
+    </div>
+    <div class="edge-pick">
+      <div><span class="edge-pick-team">Texas Southern</span><span class="edge-pick-line">−1.5 vs Alabama A&M</span></div>
+      <div class="edge-pick-gap">+4.4 pts</div>
+    </div>
+    <div class="edge-pick">
+      <div><span class="edge-pick-team">Kentucky</span><span class="edge-pick-line">ML / +3.5 @ Missouri</span></div>
+      <div class="edge-pick-gap">+4.1 pts</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-label">All Predictions</div>
+
+<div class="games-list" id="gamesList"></div>
+
+<div class="footer-note">HefML · CatBoost + Particle Filter · Tap game to expand</div>
+
+<script>
+const games = [
+  { away:"Massachusetts", home:"Miami (OH)", homeProb:0.705, margin:4.43, time:"11:00 AM", mkt:null, conf:"MAC" },
+  { away:"George Washington", home:"Fordham", homeProb:0.254, margin:-8.37, time:"11:30 AM", mkt:null, conf:"A-10" },
+  { away:"Providence", home:"St. John's", homeProb:0.432, margin:-0.79, time:"12:00 PM", mkt:-11.5, conf:"Big East", betRec:"Providence +11.5", edgeGap:-12.3 },
+  { away:"Iowa", home:"Ohio State", homeProb:0.609, margin:2.68, time:"12:00 PM", mkt:null, conf:"Big Ten" },
+  { away:"NC State", home:"Virginia", homeProb:0.447, margin:-1.17, time:"12:00 PM", mkt:null, conf:"ACC" },
+  { away:"Kentucky", home:"Missouri", homeProb:0.490, margin:0.61, time:"12:30 PM", mkt:3.5, conf:"SEC", betRec:"Kentucky +3.5 / ML", edgeGap:4.1 },
+  { away:"Iowa State", home:"Texas Tech", homeProb:0.429, margin:-0.20, time:"12:30 PM", mkt:null, conf:"Big 12" },
+  { away:"Bowling Green", home:"Toledo", homeProb:0.649, margin:5.02, time:"1:30 PM", mkt:-1.5, conf:"MAC", betRec:"Toledo −1.5", edgeGap:3.5 },
+  { away:"Alabama A&M", home:"Texas Southern", homeProb:0.613, margin:2.86, time:"2:00 PM", mkt:1.5, conf:"SWAC", betRec:"Texas Southern −1.5", edgeGap:4.4 },
+  { away:"St. Bonaventure", home:"George Mason", homeProb:0.543, margin:-0.26, time:"2:00 PM", mkt:-4.0, conf:"A-10", betRec:"St. Bonaventure +4", edgeGap:-4.3 },
+  { away:"Washington", home:"Wisconsin", homeProb:0.745, margin:7.68, time:"2:30 PM", mkt:null, conf:"Big Ten" },
+  { away:"Louisville", home:"Miami", homeProb:0.412, margin:-1.86, time:"2:30 PM", mkt:null, conf:"ACC" },
+  { away:"Creighton", home:"Seton Hall", homeProb:0.310, margin:-4.56, time:"2:30 PM", mkt:-2.5, conf:"Big East", betRec:"Creighton ML / +2.5", edgeGap:-7.1 },
+  { away:"UCF", home:"Arizona", homeProb:0.728, margin:5.84, time:"3:00 PM", mkt:null, conf:"Big 12" },
+  { away:"Auburn", home:"Tennessee", homeProb:0.410, margin:-2.67, time:"3:00 PM", mkt:-6.5, conf:"SEC", betRec:"Auburn +6.5", edgeGap:3.8 },
+  { away:"UNLV", home:"Utah State", homeProb:0.710, margin:5.72, time:"3:00 PM", mkt:null, conf:"MWC" },
+  { away:"Buffalo", home:"Akron", homeProb:0.716, margin:4.31, time:"4:00 PM", mkt:null, conf:"MAC" },
+  { away:"Rhode Island", home:"Duquesne", homeProb:0.634, margin:3.55, time:"5:00 PM", mkt:null, conf:"A-10" },
+  { away:"Nevada", home:"Grand Canyon", homeProb:0.344, margin:-5.13, time:"5:30 PM", mkt:null, conf:"MWC" },
+  { away:"South Carolina State", home:"Norfolk State", homeProb:0.836, margin:7.07, time:"6:00 PM", mkt:null, conf:"MEAC" },
+  { away:"Ohio", home:"Kent State", homeProb:0.653, margin:4.46, time:"6:30 PM", mkt:null, conf:"MAC" },
+  { away:"Northwestern", home:"Purdue", homeProb:0.737, margin:7.94, time:"6:30 PM", mkt:null, conf:"Big Ten" },
+  { away:"Middle Tennessee", home:"Louisiana Tech", homeProb:0.366, margin:-3.56, time:"6:30 PM", mkt:null, conf:"CUSA" },
+  { away:"Florida State", home:"Duke", homeProb:0.716, margin:6.93, time:"7:00 PM", mkt:null, conf:"ACC" },
+  { away:"BYU", home:"Houston", homeProb:0.456, margin:-2.18, time:"7:00 PM", mkt:null, conf:"Big 12" },
+  { away:"Xavier", home:"UConn", homeProb:0.628, margin:3.46, time:"7:00 PM", mkt:null, conf:"Big East" },
+  { away:"Tulane", home:"Charlotte", homeProb:0.627, margin:3.42, time:"7:00 PM", mkt:null, conf:"American" },
+  { away:"Ole Miss", home:"Georgia", homeProb:0.743, margin:6.07, time:"7:00 PM", mkt:null, conf:"SEC" },
+  { away:"Loyola Chicago", home:"Davidson", homeProb:0.731, margin:7.10, time:"7:30 PM", mkt:null, conf:"A-10" },
+];
+
+let currentFilter = 'all';
+
+function stars(gap) {
+  const abs = Math.abs(gap || 0);
+  if (abs >= 10) return '★★★★★';
+  if (abs >= 7) return '★★★★★';
+  if (abs >= 5) return '★★★★';
+  if (abs >= 3) return '★★★';
+  return '';
+}
+
+function edgeColor(gap) {
+  const abs = Math.abs(gap || 0);
+  if (abs >= 10) return '#ff6b00';
+  if (abs >= 7) return '#f0b429';
+  if (abs >= 4) return '#f0b429';
+  return '#f0b429';
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderGames();
+}
+
+function getWinner(g) {
+  return g.margin >= 0 ? g.home : g.away;
+}
+
+function getLoser(g) {
+  return g.margin >= 0 ? g.away : g.home;
+}
+
+function isEdge(g) { return g.edgeGap && Math.abs(g.edgeGap) >= 3; }
+function isStrongEdge(g) { return g.edgeGap && Math.abs(g.edgeGap) >= 7; }
+function isCoin(g) { return Math.abs(g.margin) <= 1.5; }
+function awayPick(g) { return g.margin < 0; }
+
+function renderGames() {
+  const list = document.getElementById('gamesList');
+
+  let filtered = games.filter(g => {
+    if (currentFilter === 'edge') return isEdge(g);
+    if (currentFilter === 'home') return g.margin > 0;
+    if (currentFilter === 'away') return g.margin < 0;
+    if (currentFilter === 'coin') return isCoin(g);
+    return true;
+  });
+
+  document.getElementById('gameCount').textContent = filtered.length + ' Game' + (filtered.length !== 1 ? 's' : '');
+
+  list.innerHTML = filtered.map((g, i) => {
+    const winner = getWinner(g);
+    const loser = getLoser(g);
+    const margin = Math.abs(g.margin);
+    const awayProb = (1 - g.homeProb);
+    const hasEdge = isEdge(g);
+    const strongEdge = isStrongEdge(g);
+    const homeWins = g.margin >= 0;
+
+    const edgeClass = strongEdge ? 'strong-edge' : hasEdge ? 'has-edge' : '';
+    const edgeBadge = hasEdge ? `<span class="badge badge-edge">${stars(g.edgeGap)} EDGE</span>` : '';
+
+    const betBlock = g.betRec ? `
+      <div class="bet-rec">
+        <div class="bet-rec-label">Model Bet</div>
+        ${g.betRec} · Gap ${g.edgeGap > 0 ? '+' : ''}${g.edgeGap} pts
+      </div>` : '';
+
+    const mktBlock = g.mkt !== null ? `
+      <div class="detail-stat">
+        <div class="detail-stat-label">Market Line</div>
+        <div class="detail-stat-value">${g.mkt > 0 ? '+' : ''}${g.mkt}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Model Gap</div>
+        <div class="detail-stat-value edge">${g.edgeGap > 0 ? '+' : ''}${g.edgeGap} pts</div>
+      </div>` : `
+      <div class="detail-stat">
+        <div class="detail-stat-label">Market Line</div>
+        <div class="detail-stat-value" style="color:var(--text-muted);font-size:13px">No line</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Confidence</div>
+        <div class="detail-stat-value">${Math.round(Math.max(g.homeProb, 1-g.homeProb)*100)}%</div>
+      </div>`;
+
+    const barPct = Math.min(100, (margin / 15) * 100);
+    const barColor = margin >= 7 ? '#22c55e' : margin >= 4 ? '#38bdf8' : margin >= 2 ? '#f0b429' : '#6b7280';
+
+    const awayWinnerTag = !homeWins ? `<div class="predicted-winner-tag">▲ PICK</div>` : '';
+    const homeWinnerTag = homeWins ? `<div class="predicted-winner-tag">▲ PICK</div>` : '';
+
+    const delay = i * 0.04;
+
+    return `
+    <div class="game-card ${edgeClass}" style="animation-delay:${delay}s" onclick="toggleCard(this)">
+      <div class="game-meta">
+        <div class="game-time">${g.time} ET · ${g.conf}</div>
+        <div class="game-badges">
+          ${edgeBadge}
+        </div>
+      </div>
+      <div class="matchup">
+        <div class="team-block away">
+          <div class="team-label">Away</div>
+          <div class="team-name ${!homeWins ? 'predicted-winner' : ''}">${g.away}</div>
+          <div class="team-prob prob-away">${Math.round(awayProb*100)}%</div>
+          ${awayWinnerTag}
+        </div>
+        <div class="vs-divider">
+          <div class="vs-text">VS</div>
+          <div class="model-margin">${g.margin > 0 ? '+' : ''}${g.margin.toFixed(1)}</div>
+        </div>
+        <div class="team-block home">
+          <div class="team-label">Home</div>
+          <div class="team-name ${homeWins ? 'predicted-winner' : ''}">${g.home}</div>
+          <div class="team-prob prob-home">${Math.round(g.homeProb*100)}%</div>
+          ${homeWinnerTag}
+        </div>
+      </div>
+      <div class="game-detail">
+        <div class="detail-grid">
+          <div class="detail-stat">
+            <div class="detail-stat-label">Model Margin</div>
+            <div class="detail-stat-value ${g.margin >= 0 ? 'positive' : 'negative'}">${g.margin > 0 ? '+' : ''}${g.margin.toFixed(2)}</div>
+          </div>
+          <div class="detail-stat">
+            <div class="detail-stat-label">Home Win %</div>
+            <div class="detail-stat-value">${Math.round(g.homeProb*100)}%</div>
+          </div>
+          ${mktBlock}
+        </div>
+        <div class="edge-bar-wrap">
+          <div class="edge-bar-label">
+            <span>Model Confidence</span>
+            <span style="color:${barColor}">${winner} by ${margin.toFixed(1)}</span>
+          </div>
+          <div class="edge-bar-track">
+            <div class="edge-bar-fill" style="width:${barPct}%;background:${barColor}"></div>
+          </div>
+        </div>
+        ${betBlock}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+renderGames();
+</script>
+
+</body>
+</html>
