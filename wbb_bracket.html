@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HefML WCBB 2026 · Monte Carlo Bracket</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@400;700;900&display=swap');
+:root{
+  --bg:#06060e;--panel:#0a0a16;--bdr:#151528;
+  --acc:#38bdf8;--acc2:#7dd3fc;--accdk:#0369a1;
+  --gold:#fbbf24;--grn:#34d399;
+  --txt:#dde8f5;--mut:#3a3a5c;--dim:#0f0f20;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:'Space Mono',monospace;min-height:100vh}
+
+header{
+  background:linear-gradient(110deg,#070712 0%,#0c1428 55%,#070712 100%);
+  border-bottom:2px solid var(--acc);padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:500;
+}
+.logo{font-family:'Unbounded',sans-serif;font-weight:900;font-size:1.25rem;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{font-size:.5rem;color:var(--mut);letter-spacing:.22em;margin-top:2px;text-transform:uppercase}
+.hctrl{display:flex;align-items:center;gap:10px}
+.sinfo{font-size:.57rem;color:var(--mut);text-align:right;line-height:1.6}
+.pbw{width:110px;height:3px;background:var(--bdr);border-radius:2px;overflow:hidden;display:none;margin-top:3px}
+.pbf{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));width:0;transition:width .08s}
+.btn{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.62rem;
+  background:var(--acc);color:#000;border:none;cursor:pointer;
+  padding:8px 16px;letter-spacing:.07em;
+  clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);
+  transition:background .1s}
+.btn:hover{background:var(--acc2)}
+.btn:disabled{background:var(--mut);cursor:not-allowed}
+
+.notice{padding:6px 20px;font-size:.55rem;background:#060e18;
+  border-bottom:1px solid #0c2040;color:var(--acc);letter-spacing:.03em;opacity:.85}
+.tip{font-size:.52rem;color:var(--mut);text-align:center;
+  padding:4px;background:var(--panel);border-bottom:1px solid var(--bdr)}
+
+.bracket-outer{overflow-x:auto;padding:14px 8px 24px;background:var(--bg)}
+.bracket-inner{display:flex;flex-direction:row;align-items:flex-start;min-width:2080px}
+
+.rnd-col{display:flex;flex-direction:column;width:183px;flex-shrink:0;padding:0 3px}
+.rnd-hdr{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.43rem;
+  letter-spacing:.16em;color:var(--mut);text-align:center;
+  padding:8px 0 10px;text-transform:uppercase;white-space:nowrap}
+
+/* slot */
+.slot{
+  display:flex;align-items:center;gap:4px;
+  padding:4px 5px;background:#0a0a18;border:1px solid var(--bdr);
+  margin-bottom:1px;position:relative;min-height:29px;
+  overflow:hidden;transition:border-color .12s,background .2s;
+}
+.slot:hover{border-color:var(--mut)}
+.slot.tbd{opacity:.22}
+.slot.pend{border-style:dashed;opacity:.55}
+.slot.filled{opacity:1;border-color:var(--accdk)}
+.slot.champ-slot{border-color:var(--gold)!important;background:#100e00}
+
+.sd{font-size:.5rem;font-weight:700;color:#000;border-radius:2px;
+  padding:0 3px;min-width:15px;text-align:center;flex-shrink:0;line-height:1.5}
+.s1{background:#0284c7}.s2{background:#0e7490}.s3{background:#0369a1}
+.s4{background:#1d4ed8}.s5{background:#0891b2}.s6{background:#0f766e}
+.s7{background:#047857}.s8{background:#065f46}
+.s9{background:#4338ca}.s10{background:#6d28d9}
+.s11{background:#7c3aed}.s12{background:#9333ea}
+.s13{background:#a21caf}.s14{background:#be185d}
+.s15{background:#9f1239}.s16{background:#374151}
+
+.tname{font-size:.59rem;font-weight:700;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em}
+.advpct{font-size:.49rem;color:var(--acc2);font-weight:700;
+  flex-shrink:0;min-width:30px;text-align:right}
+.pbar{position:absolute;bottom:0;left:0;height:2px;
+  background:linear-gradient(90deg,var(--accdk),var(--acc));transition:width .5s ease}
+
+.mu{position:relative;margin-bottom:7px}
+.mu::after{content:'';position:absolute;right:-3px;top:50%;
+  width:3px;height:1px;background:var(--bdr)}
+.mu.mirr::after{display:none}
+.mu.mirr::before{content:'';position:absolute;left:-3px;top:50%;
+  width:3px;height:1px;background:var(--bdr)}
+
+/* center */
+.center-col{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;width:176px;flex-shrink:0;padding:28px 5px 0;gap:9px}
+.ff-card{width:164px;background:#080816;border:1px solid var(--bdr);
+  border-radius:3px;padding:8px 9px;text-align:center}
+.ff-lbl{font-size:.43rem;color:var(--mut);letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:3px}
+.ff-nm{font-family:'Unbounded',sans-serif;font-weight:700;
+  font-size:.62rem;color:var(--acc);min-height:16px}
+.ff-pp{font-size:.48rem;color:var(--acc2);margin-top:2px}
+.champ-card{width:164px;background:linear-gradient(135deg,#0e0900,#181000);
+  border:2px solid var(--gold);border-radius:4px;padding:10px 9px;text-align:center}
+.champ-ico{font-size:1.3rem;margin-bottom:3px}
+.champ-lbl{font-size:.42rem;color:var(--gold);letter-spacing:.17em;
+  text-transform:uppercase;margin-bottom:5px}
+.champ-nm{font-family:'Unbounded',sans-serif;font-weight:900;
+  font-size:.68rem;color:var(--gold);min-height:18px}
+.champ-pp{font-size:.52rem;color:var(--acc2);margin-top:4px;font-weight:700}
+
+.odds{padding:16px 20px;background:var(--panel);border-top:1px solid var(--bdr)}
+.odds-h{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.7rem;
+  color:var(--acc);letter-spacing:.1em;margin-bottom:11px}
+.og{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:5px}
+.or{display:flex;align-items:center;gap:5px;
+  padding:5px 8px;background:#09091a;border:1px solid var(--bdr);border-radius:2px}
+.or-rk{font-size:.5rem;color:var(--mut);width:14px;flex-shrink:0}
+.or-sd{font-size:.47rem;font-weight:700;color:#000;border-radius:2px;padding:0 3px;flex-shrink:0}
+.or-nm{font-size:.59rem;font-weight:700;flex:1}
+.or-pc{font-size:.57rem;color:var(--acc2);font-weight:700;flex-shrink:0}
+.or-bar{width:52px;height:3px;background:var(--bdr);border-radius:2px;overflow:hidden;flex-shrink:0}
+.or-bf{height:100%;background:linear-gradient(90deg,var(--accdk),var(--acc))}
+
+.sbar{display:flex;justify-content:space-between;font-size:.52rem;
+  color:var(--mut);padding:6px 20px;background:var(--panel);border-top:1px solid var(--bdr)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">HefML WCBB · 2026</div>
+    <div class="sub">NCAA Women's Tournament · Monte Carlo Bracket · 10,000 Simulations</div>
+  </div>
+  <div class="hctrl">
+    <div>
+      <div class="sinfo" id="simStat">Ready · click to run</div>
+      <div class="pbw" id="pbw"><div class="pbf" id="pbf"></div></div>
+    </div>
+    <button class="btn" id="btnSim" onclick="runSims()">▶ RUN 10K SIMS</button>
+  </div>
+</header>
+<div class="notice">⚡ Power: wcbb_power_lookup.rds (663 teams) · Model: CatBoost prob + QRF spread (33 R64 matchups direct) · First Four: NEB 75–56 RICH · MIST 85–75 SFA · Tonight (simulated each run): Southern/Samford · Virginia/Arizona State</div>
+<div class="tip">← scroll to view full bracket → | Each slot shows most-likely winner + advance % after simulation</div>
+<div class="bracket-outer"><div class="bracket-inner" id="bInner"></div></div>
+<div class="odds">
+  <div class="odds-h">▸ CHAMPIONSHIP WIN PROBABILITY — 10,000 MONTE CARLO SIMULATIONS</div>
+  <div class="og" id="og"><div style="color:var(--mut);font-size:.59rem;padding:4px">Click RUN 10K SIMS to generate odds…</div></div>
+</div>
+<div class="sbar">
+  <div>HefML WCBB · Power: wcbb_power_lookup.rds · Direct CatBoost predictions for known R64 matchups · Logistic σ=12.5pt for future rounds · FF: FW1 vs SAC4 · SAC2 vs FW3</div>
+  <div id="sbrR">n=0</div>
+</div>
+
+<script>
+const POWER={"North Carolina":143.207454093149,"Oakland":-65.6258759130953,"Youngstown State":104.826307209637,"Iona":43.7491352338748,"Butler":-47.3510571891193,"Clemson":84.2140876659926,"Middle Tennessee":8.89160968895089,"Baylor":102.640612602366,"Ole Miss":85.4251280849351,"Iowa State":74.1711064662245,"Samford":26.0339131097091,"Oral Roberts":-8.6239409409468,"Memphis":-90.3140317558311,"Marquette":37.7209227469264,"Chattanooga":52.7405169886888,"Stephen F. Austin":113.908528140179,"SE Louisiana":-129.487793842186,"McNeese":163.494470541807,"Jacksonville State":2.43746091651951,"Utah":51.8626955535947,"Eastern Illinois":-145.070320029464,"UAB":-77.929300749807,"Nebraska":37.1382625998183,"Boise State":85.3554622046977,"UTEP":-43.3382475467479,"St. John's":65.1807976803393,"Duquesne":-47.4477084311493,"Washington State":-81.8469533158204,"Vanderbilt":157.686685615629,"East Texas A&M":-41.0580575924794,"Northeastern":-116.740427970142,"Charleston":147.262445089179,"UMass Lowell":-86.9789145471807,"Presbyterian":-179.94798632041,"Army":111.368585047588,"Sam Houston":28.9411052947812,"George Washington":-10.5848301372805,"UIC":-41.9536109027813,"Binghamton":46.4279562167665,"Wake Forest":-50.546482783637,"Penn State":-42.5846792588659,"Tulane":-76.7297186071494,"Miami":10.0169186295268,"Georgia":79.4545195759765,"Alabama":86.7480933101683,"Oklahoma":133.248393284316,"Charlotte":-38.6905171456685,"Austin Peay":44.1962535008465,"South Dakota":87.5175200701215,"Coastal Carolina":-26.4531336288255,"James Madison":147.390035899696,"Marshall":90.4161094560448,"UCF":-63.5660821533588,"St. Bonaventure":-2.04619772956335,"Fordham":-87.1786853301587,"Georgia Southern":129.220197527524,"East Carolina":67.7963284079412,"Bryant":34.2323271116368,"South Florida":55.4906004499057,"New Hampshire":-58.342647065705,"Texas A&M-Corpus Christi":-120.629639326036,"Florida State":-80.2032191515677,"Boston College":-158.69075040678,"Boston University":-58.6403395676646,"Kentucky":101.371811878619,"Georgia State":-88.0858835473291,"IU Indianapolis":-7.41637288146421,"App State":-68.1209585262909,"Abilene Christian":87.6241676579994,"Old Dominion":24.3841170084895,"North Texas":30.2218955898597,"UMBC":33.3937866253104,"Bellarmine":-185.045733636665,"Jacksonville":114.894968204397,"UNC Asheville":-46.1374654685455,"South Carolina":208.344090390473,"Maryland":90.7307169773096,"Tennessee Tech":-8.78060554726608,"Eastern Kentucky":96.6216699285806,"Green Bay":112.198804589669,"Monmouth":55.6591610775765,"Southern Indiana":72.8719791927788,"Furman":33.8677408586834,"Wofford":28.1551985379172,"Alcorn State":16.288851198402,"Northern Iowa":38.6232215384057,"Southern Miss":-18.5709412194033,"Villanova":132.842668741023,"Creighton":37.5788823280079,"High Point":127.897524448013,"Queens University":-74.3562000586915,"Wichita State":-103.638699563561,"Milwaukee":-127.502826209254,"Temple":-12.4440072641075,"Jackson State":-39.5862073134292,"Cleveland State":90.9011413346045,"West Virginia":157.010980996938,"Delaware":-48.9663301495234,"North Alabama":28.2227968626323,"Florida":20.1684302368005,"East Tennessee State":41.8777762929058,"Manhattan":-55.150894046109,"Sacred Heart":-39.295206459411,"Texas Tech":106.023002511773,"Rutgers":-96.2925496756029,"Troy":126.804826215732,"Louisiana":-129.662552045754,"Purdue":-30.6128801521186,"Iowa":159.741922125728,"Oklahoma State":94.8255714708355,"Stonehill":-48.9337991516006,"UL Monroe":16.8705957869743,"UT Rio Grande Valley":57.2263652180122,"Kansas State":30.5598643333419,"Missouri State":93.3605553095765,"Mississippi State":22.8147009272429,"Illinois State":32.0309781109886,"Missouri":-6.58993330889643,"Texas":207.440410320859,"Little Rock":-12.1680345001694,"SIU Edwardsville":-0.101704407876696,"Fresno State":-26.1845460048396,"Denver":-59.2517037949156,"Washington":80.6306297053347,"Texas State":-66.7217068114221,"California Baptist":106.207555476237,"Tarleton State":-18.5068313244917,"Arkansas State":107.461177172553,"South Alabama":-1.23186715484599,"Southern Utah":40.1828660489205,"Arizona State":89.9729001406829,"Cal Poly":-152.556443378363,"UC Santa Barbara":51.6262796564495,"Pacific":-71.0626520723174,"San Diego":-72.8148722842107,"New Mexico":71.3457450744791,"Santa Clara":101.796479751673,"Oregon":71.8690045315732,"Eastern Washington":-14.0992890153175,"Nevada":-74.7436665266655,"Cal State Bakersfield":-125.313823748765,"Sacramento State":-9.2021644020856,"San Diego State":132.688447109941,"Stanford":20.4800784419008,"UC Davis":90.4969212865308,"Southern Illinois":-82.5883051176004,"SMU":-96.8665129410526,"NC State":75.5002908564702,"UConn":231.681063854306,"Richmond":132.1131000623,"Siena":-22.9105900690224,"Vermont":144.247304776798,"Pittsburgh":-128.048875577449,"Virginia Tech":91.7159428288398,"Michigan State":95.2902525160725,"Cincinnati":-47.1380282500916,"Xavier":-74.8765969659744,"UAlbany":-19.1581704846656,"Michigan":151.326735210095,"Merrimack":56.322887465305,"Idaho State":50.898998114764,"Providence":-26.8465577432607,"Seton Hall":49.2033907095399,"Indiana":37.4520971502773,"Florida Atlantic":-28.5490443481215,"Saint Joseph's":60.0080876474599,"Liberty":43.2450765950171,"Bradley":42.5508094634322,"Virginia":43.9493246670261,"DePaul":-95.5361086626522,"Syracuse":87.1674841758634,"Kennesaw State":-37.2550895278241,"Illinois":71.0170985873658,"Arkansas":-68.6678536691209,"Houston":-112.219196960488,"LSU":161.625551853201,"Western Illinois":136.963875426425,"Minnesota":104.687516593238,"Northern Colorado":75.175988772676,"Colorado State":133.931984055359,"Wyoming":-63.9531273335167,"Cal State Northridge":-79.5687193447059,"Portland":31.3790148337657,"Montana State":128.280482754401,"Montana":-75.2302468098603,"USC":38.1092786280744,"Cal State Fullerton":28.7385760342227,"Hawai'i":90.7863611785253,"North Florida":-79.145198091064,"Lindenwood":131.6285135934,"Chicago State":-91.2782819079071,"UC Irvine":134.029392908641,"Delaware State":-114.126358945299,"VCU":-99.1571320004957,"Notre Dame":99.1678368676492,"Wagner":-52.0970795313763,"South Carolina State":-155.89879197667,"Hampton":-85.6989538164448,"Longwood":59.33587228493,"Alabama A&M":84.5813745264572,"Western Kentucky":-86.7376297333426,"Kansas":48.4175709686035,"San Francisco":26.0331410306806,"Wisconsin":-34.9513206438276,"Tulsa":35.930294879555,"Loyola Marymount":90.6792513099019,"Texas A&M":24.363999802393,"Northwestern":-98.2635433535077,"Seattle U":-150.195100580352,"BYU":84.0034149314281,"UNLV":68.5713976927834,"Georgia Tech":-17.3840821219944,"Coppin State":-72.695377407988,"Southeast Missouri State":-0.39802740259347,"Texas Southern":-107.874240078894,"UCLA":220.840761534536,"Lipscomb":-70.5213882821922,"TCU":158.784688149041,"Saint Louis":-73.2479161808999,"Rider":-115.277618882977,"Norfolk State":42.8946156239326,"Western Carolina":-169.971882168382,"Loyola Chicago":-10.7784254571395,"Stetson":67.9133539845111,"South Carolina Upstate":-48.9178693788797,"Loyola Maryland":-38.3975976276622,"Davidson":69.3685429358384,"Dayton":24.276420567021,"Mercer":29.2611404572044,"Georgetown":-28.1957951161392,"Omaha":-132.599988093034,"Colorado":87.937205332343,"Arizona":-61.1736379838051,"Pennsylvania":62.6048565551012,"Miami (OH)":157.867739526436,"Rhode Island":166.458398236808,"Yale":-73.6027806659522,"Oregon State":78.7444084283959,"Robert Morris":28.738551502875,"Niagara":-184.720509065068,"Tennessee":36.7325897936735,"Towson":16.3303722930862,"North Carolina Central":-80.5465794935412,"Canisius":-138.677270679827,"Stony Brook":36.7853863361813,"Saint Mary's":-37.9695102853286,"Maine":69.9288000332106,"Marist":-73.8761840627701,"Colgate":-120.540274727417,"UT Arlington":-56.1198428017653,"Central Arkansas":84.8852274708408,"Belmont":50.0713101627196,"Northern Illinois":-102.209989049391,"Tennessee State":-125.311470289419,"North Dakota":-122.631064267228,"North Dakota State":153.378440455292,"South Dakota State":150.820963501407,"Utah State":-142.495021511295,"Harvard":80.0466739084375,"UC San Diego":120.014628258685,"La Salle":39.7064403593135,"Detroit Mercy":-115.644525770764,"Howard":129.805801406071,"Maryland Eastern Shore":26.0648181483527,"Winthrop":-12.9463567447785,"Massachusetts":105.060022279483,"West Georgia":23.8694225088395,"Auburn":-13.9042340990723,"Kansas City":-114.825098749527,"St. Thomas-Minnesota":-1.89858241723459,"Utah Tech":-84.6823583027106,"Radford":68.8515844233682,"Weber State":-67.861791693635,"Pepperdine":40.5769380119425,"American University":-111.78628021984,"Florida Gulf Coast":15.322094113357,"Fairfield":170.084783046763,"Grand Canyon":-23.6165655121245,"Lafayette":-49.4499672243246,"Ohio":39.6123047569456,"Duke":140.042185143354,"New Haven":-131.995047871088,"Central Michigan":38.2525490201947,"William & Mary":29.8724410656546,"Western Michigan":-76.9098478543065,"Ohio State":139.815675315948,"Louisville":131.789672001915,"Buffalo":-170.523373135389,"Morgan State":-135.465823446142,"Toledo":28.3707531485115,"UT Martin":-42.4083551665926,"Grambling":-29.2830829055401,"Campbell":56.656965767567,"Drake":-53.2353033401509,"Idaho":165.575268381344,"California":26.8959679375778,"Elon":11.0343921410201,"Kent State":8.3041173888405,"George Mason":118.196553047355,"Alabama State":14.2791070459411,"Fairleigh Dickinson":159.0608096611,"Incarnate Word":-37.4593105615916,"Bethune-Cookman":-126.940093268816,"Quinnipiac":128.843344401244,"Lehigh":24.3343906507805,"NJIT":40.2913795847248,"Long Island University":66.7383808894281,"New Mexico State":-81.0756440598273,"Indiana State":-83.2333284997678,"Louisiana Tech":141.626119398694,"Northern Arizona":-80.7923788720545,"Portland State":-140.343229476945,"Arkansas-Pine Bluff":9.32883668422824,"Drexel":72.6316174757603,"Holy Cross":104.827886734765,"Bucknell":-58.0487603225915,"Dartmouth":-61.0175916012247,"Ball State":130.810389410727,"Wright State":-80.4700953223969,"UNC Wilmington":-112.196716621195,"Navy":96.3119984528437,"Purdue Fort Wayne":42.3085283877842,"North Carolina A&T":-39.1707793320684,"Long Beach State":-131.873983466658,"Central Connecticut":-179.188956336744,"Saint Francis":-172.146219056711,"UTSA":48.6309351483994,"Gonzaga":111.861909409746,"Northwestern State":30.3537392799983,"Mercyhurst":7.22085119891881,"Prairie View A&M":-193.711307709422,"Nicholls":-8.13607897606585,"Utah Valley":10.043041707899,"UC Riverside":-47.8618312307976,"Florida International":63.4957004008947,"Hofstra":-30.3308491836733,"Rice":149.679859863842,"Mount St. Mary's":-7.90475658072046,"Florida A&M":-86.4165372965817,"Air Force":12.1795052671159,"Columbia":94.6044104851749,"Murray State":185.600663556141,"Gardner-Webb":-42.8646732763798,"Lamar":71.4412254823483,"Valparaiso":-213.613439641146,"Mississippi Valley State":-95.6589988996971,"Cornell":-57.6772591194665,"Southern":60.7543411575223,"Houston Christian":-96.4580038581828,"Northern Kentucky":-2.93377250578533,"Princeton":169.142189733249,"Brown":49.9874669237104,"New Orleans":-160.003299529581,"San Jos\u00e9 State":-150.726761774048,"Akron":-112.34944516858,"Evansville":-74.4121994767997,"UNC Greensboro":-28.0337336918344,"Bowling Green":20.9597341498636,"Alaska Anchorage":-33.4820374279618,"Morehead State":29.8700838947834,"Le Moyne":-40.6406349085462,"Charleston Southern":-97.2304595707606,"Saint Peter's":-118.460758572672,"Eastern Michigan":-22.9343275465887,"St. Thomas (TX)":-19.6634909628831,"Edward Waters":-0.736097464986869,"Puerto Rico-Mayaguez":-12.0396202584814,"Cleary University":-7.19870000394235,"Thiel":-7.19870000394235,"Mercy":-14.7709645106852,"Montevallo":-7.19870000394235,"Friends University":-7.19870000394235,"King (TN)":-21.9978348271989,"Nelson":-19.7791027986152,"Centenary (LA)":-7.19870000394235,"Pensacola Christian":-7.19870000394235,"LaGrange":-14.6893007942369,"Sioux Falls":-7.19870000394235,"West Alabama":5.39910603235921,"Eastern Oregon":-7.19870000394235,"UNT Dallas":-15.1635573448816,"Covenant":-7.19870000394235,"St. Anselm":-14.0201233890314,"Warren Wilson":-14.546662923678,"Pace":-7.19870000394235,"Southwestern Christian":-7.19870000394235,"District Of Columbia":-14.3974000078847,"SUNY Geneseo":-16.0702731343169,"Sewanee":-14.3974000078847,"York College Nebraska":-7.19870000394235,"Mansfield":-7.19870000394235,"Adelphi":-7.19870000394235,"Worcester State":-7.19870000394235,"College Of Biblical Studies":-15.1623055692703,"Oglethorpe":-7.19870000394235,"Howard Payne":-7.19870000394235,"Oklahoma Christian University":-7.19870000394235,"Stevenson":-7.19870000394235,"Spalding":-7.19870000394235,"Cumberland (KY)":-7.19870000394235,"Transylvania":-7.19870000394235,"Wisconsin-Stevens Point":-7.19870000394235,"Chestnut Hill College":-13.3590404494478,"Franklin":-7.19870000394235,"North Greenville":-7.19870000394235,"Converse":-7.19870000394235,"Johnson C Smith":-7.19870000394235,"Lincoln (MO)":-7.19870000394235,"Mississippi University For Women":-14.546662923678,"Bloomsburg":-14.0201233890314,"Bridgewater State (MA)":-7.19870000394235,"St. Mary's (TX)":-22.1748220933616,"Central Baptist College":-20.0566996795444,"Missouri Baptist":-7.19870000394235,"Fresno Pacific":-7.19870000394235,"Schreiner":-7.19870000394235,"Park University Gilbert":-16.233537625905,"UC Santa Cruz":-7.19870000394235,"CS Monterey Bay":-22.3248303575235,"Bethesda University":-14.2075927926639,"Stanislaus State":-14.210284786162,"Northwest University":-14.3974000078847,"Cal State San Marcos":-14.546662923678,"Stanton":-7.19870000394235,"Jessup University":-7.19870000394235,"Lewis":-7.19870000394235,"Dean":-7.19870000394235,"Massachusetts-Boston":-7.19870000394235,"Westminster (UT)":-21.053568346709,"Florida Memorial":-7.19870000394235,"West Chester":-13.5957065985581,"Frostburg State":-14.3974000078847,"Judson University":-15.3583716103624,"Shorter":-7.19870000394235,"Westminster (MO)":-7.19870000394235,"Northern New Mexico":-7.19870000394235,"Willamette":-14.3974000078847,"Carroll (MT)":-7.19870000394235,"Seattle Pacific":-7.19870000394235,"Palm Beach Atlantic":-7.39072310644792,"Harris-Stowe State":-20.7968215556846,"Felician":-7.19870000394235,"SUNY-New Paltz":-7.39072310644792,"Morris College":-7.19870000394235,"Apprentice School":-7.19870000394235,"Randolph College":-7.19870000394235,"Talladega":-14.5754408570729,"Kentucky State":-14.2215422648535,"Lincoln (PA)":-7.39072310644792,"Fisk":-28.1574998438962,"Wiley":-7.19870000394235,"Florida Tech":-7.0088927887216,"Virginia-Lynchburg":-14.5934271963822,"Haskell":-21.2280319260301,"Slippery Rock":-7.0088927887216,"Warner University":-7.39072310644792,"Erskine":-21.437063564302,"Mars Hill":-14.650639207744,"Langston":-6.82142338508902,"College Of St Mary":-13.5031534191078,"William Carey":-7.0088927887216,"Kings (PA)":-7.19870000394235,"Cedarville":-6.86278151409783,"Delta State":12.4583780790251,"Corban University":-7.19870000394235,"Bob Jones":-20.5014210154736,"Elizabeth City State":-7.54162192097488,"Molloy":-7.39072310644792,"Chico State":-12.7198295426754,"Ithaca College":-6.86278151409783,"Arlington Baptist":-13.8357883188353,"Lyon":-7.39072310644792,"Cheyney (PA)":-14.0159904258392,"Newberry":-15.0136932156117,"William Jewell":-7.39072310644792,"Texas A&M-Texarkana":-7.0088927887216,"Emory & Henry":-7.5796897147336,"Westmont":-6.86278151409783,"Lees-McRae":-7.72809212038896,"Davenport":-7.39072310644792,"Barton":-7.395874430704,"Tusculum":-7.0088927887216,"Ouachita Baptist":-7.5746106562051,"UT Dallas":-7.19870000394235,"Virginia St":-7.19870000394235,"San Francisco State":-6.68581528815548,"Walla Walla":-7.0547023819563,"Concordia Moorhead":-7.20761221100497,"Minot State":-6.67721150833745,"Walsh":-7.5746106562051,"Emmanuel (MA)":-6.68099947352061,"Blue Mountain College":-6.82633537321749,"Bloomfield":-22.00860701546,"Buena Vista":-6.81756183381185,"Western New Mexico":-14.6063144043742,"Albany St (GA)":-7.5746106562051,"West Liberty":-6.51355171715818,"Kean":-7.0547023819563,"Trinity Baptist":-7.0088927887216,"New Mexico Highlands":-13.8233292996777,"Louisiana Christian":-14.4431159148876,"Bethany (KS)":-6.82633537321749,"Embry-Riddle (AZ)":-7.5796897147336,"Warner Pacific":-7.34796291973566,"Washington Adventist":-16.9998518008931,"Purchase":-7.72672146267996,"Texas A&M-International":-7.0088927887216,"Colby-Sawyer":-7.06856917256255,"Arkansas Baptist":-21.5133067159995,"Pittsburgh-Johnstown":-6.69100824455631,"Wilberforce":-13.903414337294,"Shaw":-15.6157200304619,"Hope International":-17.5522006479971,"Indiana-Southeast":-6.88538966576175,"Johnson University (TN)":-7.54162192097488,"Ave Maria":-7.54148416674798,"Saint Martin's":-7.0088927887216,"Ecclesia":-7.23020110070161,"Texas College":-7.74122305888955,"Bluefield University":-7.00987145626641,"Claflin":-8.07493340985434,"Georgetown College (KY)":-7.89270048815843,"Scranton":12.8464381042975,"New England College":-7.56176388268909,"Winston-Salem":-7.55438891503422,"Faulkner":12.4387590984854,"Bard":-7.86561551532304,"Indiana University East":-13.8998045742537,"Benedictine (AZ)":-13.0925655370936,"Carnegie Mellon":11.7545290825778,"Johns Hopkins University":12.2756270047596,"Salem University":-13.0751803421113,"Tougaloo":-7.74664065165575,"LeTourneau":-16.4506892111756,"Loyola New Orleans":12.2391520446902,"Hesston":-7.56931170609255,"Clinton College":-7.34746865896091,"Trinity (FL)":-7.05992543048251,"Stillman":-7.22112073426456,"Regis (CO)":-7.35204715758073,"LSU Alexandria":-6.86692112083551,"St. Mary's (MD)":-7.86171251139103,"Midway University":-6.68822108882227,"Saint Mary-Of-The-Woods College":-7.25219783018974,"Concordia-Texas":-7.54909505990327,"Chapman":-14.9163184417457,"Occidental":-7.51760162000141,"Chadron State":-14.4294963231405,"Lehman College":-7.94675584860647,"Montreat":-17.0272625112439,"Roosevelt":12.4591950261174,"Georgia Southwestern":-6.52068213010216,"Huston-Tillotson":-15.0685759386367,"North American":-6.49780135229184,"South Dakota Mines":-6.03363171822389,"Anderson (IN)":-7.71448873240161,"Rensselaer":-6.66171295360527,"UVA Wise":-13.0862357345829,"Life Pacific":-7.37478038211771,"Nelson American Indiana College":-6.25346879401786,"Cal Lutheran":-8.22853559946861,"Maine-Fort Kent":-15.3778648428802,"Wisconsin-Stout":-8.65882245183616,"Oakwood":-13.16552226412,"Allen University":-8.41254987699381,"New Jersey City":-15.5359819235614,"Rust College":-15.3734886780633,"Auburn-Montgomery":-14.0029690427232,"Hendrix College":-14.018764917515,"Columbia College (SC)":-14.5339259402854,"McMurry":-6.88113910781271,"Evergreen State":-7.53748741713775,"Oakland City":-5.76158873357235,"Heidelberg":-8.89411349510488,"Johnson & Wales (NC)":-6.88129926803663,"St. Francis (IL)":-6.53424523541821,"Tuskegee":-8.39750835526957,"Calumet College Of St. Joseph":-6.89016300874914,"Livingstone":-20.9523121054845,"Defiance":-13.4583650145732,"Thomas (GA)":-6.98419851037079,"Simpson University (CA)":-20.7977607784276,"UNC Pembroke":-6.82602640890536,"Texas A&M-San Antonio":-7.17545930144115,"Miles":-8.16296952473499,"Montana Western":-8.29920631089544,"MSU Denver":-7.83355960520612,"Marywood":-8.5403303730825,"Brewton-Parker":-14.2392933366605,"Columbia College (MO)":-6.10925939759022,"Southern Arkansas":-6.21932326113006,"Crown College":-7.85890240799245,"Dillard":-17.2873259364935,"Carolina University":-26.2373046775217,"Davis & Elkins":-13.8648170779202,"Hawai'i Hilo":-7.84118223585097,"Coastal Georgia":-13.4913872085092,"Southern-New Orleans":-7.10091835766275,"Stephens":-6.41246820122637,"Point University":-7.44524266041822,"California (PA)":-6.07340499265183,"Cal State LA":-6.10165076141516,"Christopher Newport University":-7.22601439894879,"Lourdes University":-6.8486538087484,"Ripon College":-8.8854985891362,"Champion Christian":-7.47991095681596,"Texas A&M-Kingsville":-7.34366252799373,"Jarvis Christian":-8.87166385052933,"Concord":-7.49636052830124,"Franklin Pierce":-11.7618509242466,"Cal State East Bay":-8.06730194029774,"Geneva":-8.7716415228906,"La Sierra":-21.4658456504715,"Agnes Scott College":-8.06153151445415,"Georgian Court University":-20.0239091695323,"Wesleyan College (GA)":-7.25766449033858,"IU Columbus":-8.3575476952517,"Simmons College (KY)":-8.63451012085216,"Wayne State (MI)":-7.67852380706995,"Colorado Christian":-7.77018502422902,"Mayville State":-9.50211073712376,"Aquinas":-6.36996920063166,"Point Park":-5.79923372886628,"Wisconsin-Lutheran":-8.63370261104774,"Truman State":-6.58001574971831,"Ursinus":-6.09491889430683,"Dickinson State (ND)":-9.22973477606752,"Gwynedd-Mercy":-8.02583980518739,"Ferrum":-7.84820703202399,"Lindsey Wilson":-5.55855151800506,"Western Oregon":-6.40483919783424,"Puerto Rico-Bayamon":-5.51613723809533,"Fort Lauderdale":-7.92410902066104,"Briar Cliff":-10.0317813442266,"Dallas":-6.8106423911554,"Arcadia University":-6.23639842934745,"Berry":-5.94285159280503,"Kentucky Christian":-8.0279189960861,"Health Sciences & Pharmacy":-7.55366547157246,"Wheaton College (MA)":-6.20879146724974,"Southeastern":-9.32333453990464,"Rochester Christian":12.00017953561,"Ottawa (KS)":-6.05552907209471,"St. Joseph's Brookyn":-13.51434490324,"Saint Mary's (MN)":-5.3977122893059,"Brevard":-15.629785021785,"Berkeley":-7.53308348278779,"E. New Mexico":-8.19940285672146,"Columbia International":-7.88518159401042,"Life University":-6.68542146303207,"Oklahoma Wesleyan":-6.96331313484552,"University of The Southwest":-6.53196785519958,"Bushnell":-7.01931250029247,"William Woods":-7.97312293423261,"Florida National":-6.83012789693271,"Averett":-8.79094483162976,"UC Merced":-8.74669816485107,"Southern Wesleyan":-14.2632534450847,"Notre Dame Of Maryland University":-8.01788008533481,"NC Wesleyan":-7.74984543473215,"SUNY Delhi":-7.19984123060203,"Bismarck State":-9.99209680496278,"William Peace":-9.30640392785267};
+const MPREDS={"UCLA|||California Baptist":{"spread":33.4175,"prob":0.948535},"California Baptist|||UCLA":{"spread":-33.4175,"prob":0.051465},"Illinois|||Colorado":{"spread":12.46,"prob":0.728748},"Colorado|||Illinois":{"spread":-12.46,"prob":0.271252},"Oklahoma State|||Princeton":{"spread":22.58,"prob":0.867898},"Princeton|||Oklahoma State":{"spread":-22.58,"prob":0.132102},"Vanderbilt|||High Point":{"spread":24.27,"prob":0.895913},"High Point|||Vanderbilt":{"spread":-24.27,"prob":0.104087},"Iowa State|||Syracuse":{"spread":29.2375,"prob":0.937792},"Syracuse|||Iowa State":{"spread":-29.2375,"prob":0.062208},"West Virginia|||Miami (OH)":{"spread":16.19,"prob":0.835382},"Miami (OH)|||West Virginia":{"spread":-16.19,"prob":0.164618},"Iowa|||Fairleigh Dickinson":{"spread":21.3925,"prob":0.892449},"Fairleigh Dickinson|||Iowa":{"spread":-21.3925,"prob":0.107551},"Alcorn State|||South Alabama":{"spread":-5.3825,"prob":0.393787},"South Alabama|||Alcorn State":{"spread":5.3825,"prob":0.606213},"Clemson|||USC":{"spread":6.015,"prob":0.667013},"USC|||Clemson":{"spread":-6.015,"prob":0.332987},"UConn|||UTSA":{"spread":47.6075,"prob":0.970912},"UTSA|||UConn":{"spread":-47.6075,"prob":0.029088},"Kentucky|||James Madison":{"spread":17.56,"prob":0.857885},"James Madison|||Kentucky":{"spread":-17.56,"prob":0.142115},"Alabama|||Rhode Island":{"spread":12.7325,"prob":0.781222},"Rhode Island|||Alabama":{"spread":-12.7325,"prob":0.218778},"Notre Dame|||Fairfield":{"spread":16.5825,"prob":0.84006},"Fairfield|||Notre Dame":{"spread":-16.5825,"prob":0.15994},"Norfolk State|||Loyola Chicago":{"spread":5.9175,"prob":0.657917},"Loyola Chicago|||Norfolk State":{"spread":-5.9175,"prob":0.342083},"Louisville|||Vermont":{"spread":11.455,"prob":0.834671},"Vermont|||Louisville":{"spread":-11.455,"prob":0.165329},"Ohio State|||Howard":{"spread":35.6125,"prob":0.948283},"Howard|||Ohio State":{"spread":-35.6125,"prob":0.051717},"Oklahoma|||Idaho":{"spread":23.08,"prob":0.885228},"Idaho|||Oklahoma":{"spread":-23.08,"prob":0.114772},"Texas Tech|||Villanova":{"spread":14.995,"prob":0.818515},"Villanova|||Texas Tech":{"spread":-14.995,"prob":0.181485},"NC State|||Tennessee":{"spread":10.28,"prob":0.623447},"Tennessee|||NC State":{"spread":-10.28,"prob":0.376553},"Michigan State|||Colorado State":{"spread":19.3925,"prob":0.894496},"Colorado State|||Michigan State":{"spread":-19.3925,"prob":0.105504},"Radford|||Morehead State":{"spread":4.4125,"prob":0.636798},"Morehead State|||Radford":{"spread":-4.4125,"prob":0.363202},"Florida International|||Stetson":{"spread":4.86,"prob":0.708201},"Stetson|||Florida International":{"spread":-4.86,"prob":0.291799},"LSU|||Jacksonville":{"spread":37.78,"prob":0.94968},"Jacksonville|||LSU":{"spread":-37.78,"prob":0.05032},"Minnesota|||Green Bay":{"spread":14.27,"prob":0.834536},"Green Bay|||Minnesota":{"spread":-14.27,"prob":0.165464},"Michigan|||Holy Cross":{"spread":32.8325,"prob":0.931785},"Holy Cross|||Michigan":{"spread":-32.8325,"prob":0.068215},"North Carolina|||Western Illinois":{"spread":9.4125,"prob":0.782553},"Western Illinois|||North Carolina":{"spread":-9.4125,"prob":0.217447},"Texas|||Missouri State":{"spread":38.79,"prob":0.974689},"Missouri State|||Texas":{"spread":-38.79,"prob":0.025311},"Ole Miss|||Gonzaga":{"spread":9.4175,"prob":0.803727},"Gonzaga|||Ole Miss":{"spread":-9.4175,"prob":0.196273},"Maryland|||Murray State":{"spread":9.0675,"prob":0.719695},"Murray State|||Maryland":{"spread":-9.0675,"prob":0.280305},"Washington|||South Dakota State":{"spread":0.0225,"prob":0.510086},"South Dakota State|||Washington":{"spread":-0.0225,"prob":0.489914},"Baylor|||Nebraska":{"spread":-0.2025,"prob":0.606169},"Nebraska|||Baylor":{"spread":0.2025,"prob":0.393831},"Oregon|||Virginia Tech":{"spread":11.7425,"prob":0.765772},"Virginia Tech|||Oregon":{"spread":-11.7425,"prob":0.234228},"TCU|||UC San Diego":{"spread":22.815,"prob":0.925456},"UC San Diego|||TCU":{"spread":-22.815,"prob":0.074544},"Duke|||Charleston":{"spread":12.4075,"prob":0.815917},"Charleston|||Duke":{"spread":-12.4075,"prob":0.184083},"California|||Santa Clara":{"spread":1.965,"prob":0.620635},"Santa Clara|||California":{"spread":-1.965,"prob":0.379365},"Stanford|||Loyola Marymount":{"spread":5.0225,"prob":0.797208},"Loyola Marymount|||Stanford":{"spread":-5.0225,"prob":0.202792},"Wisconsin|||Oregon State":{"spread":4.8625,"prob":0.705472},"Oregon State|||Wisconsin":{"spread":-4.8625,"prob":0.294528},"San Diego State|||UC Irvine":{"spread":6.79,"prob":0.732609},"UC Irvine|||San Diego State":{"spread":-6.79,"prob":0.267391},"BYU|||Alabama A&M":{"spread":23.175,"prob":0.910914},"Alabama A&M|||BYU":{"spread":-23.175,"prob":0.089086},"Virginia|||Arizona State":{"spread":11.8725,"prob":0.722339},"Arizona State|||Virginia":{"spread":-11.8725,"prob":0.277661},"San Francisco|||Utah Valley":{"spread":13.42,"prob":0.900168},"Utah Valley|||San Francisco":{"spread":-13.42,"prob":0.099832},"Portland|||Sam Houston":{"spread":12.2225,"prob":0.808801},"Sam Houston|||Portland":{"spread":-12.2225,"prob":0.191199},"Pepperdine|||UC Davis":{"spread":12.165,"prob":0.804512},"UC Davis|||Pepperdine":{"spread":-12.165,"prob":0.195488},"Air Force|||Northern Colorado":{"spread":-3.025,"prob":0.484324},"Northern Colorado|||Air Force":{"spread":3.025,"prob":0.515676},"North Dakota State|||Chattanooga":{"spread":19.4225,"prob":0.874371},"Chattanooga|||North Dakota State":{"spread":-19.4225,"prob":0.125629},"Rice|||Louisiana Tech":{"spread":-1.3625,"prob":0.499641},"Louisiana Tech|||Rice":{"spread":1.3625,"prob":0.500359},"Texas A&M|||McNeese":{"spread":5.065,"prob":0.710391},"McNeese|||Texas A&M":{"spread":-5.065,"prob":0.289609},"Kansas State|||Georgia Tech":{"spread":18.625,"prob":0.882705},"Georgia Tech|||Kansas State":{"spread":-18.625,"prob":0.117295},"Kansas|||Troy":{"spread":15.3425,"prob":0.745964},"Troy|||Kansas":{"spread":-15.3425,"prob":0.254036},"Miami|||Georgia Southern":{"spread":3.155,"prob":0.67979},"Georgia Southern|||Miami":{"spread":-3.155,"prob":0.32021},"Harvard|||Navy":{"spread":0.2275,"prob":0.565546},"Navy|||Harvard":{"spread":-0.2275,"prob":0.434454},"Columbia|||St. John's":{"spread":7.7425,"prob":0.783387},"St. John's|||Columbia":{"spread":-7.7425,"prob":0.216613},"George Mason|||Quinnipiac":{"spread":7.0875,"prob":0.734809},"Quinnipiac|||George Mason":{"spread":-7.0875,"prob":0.265191},"Missouri|||Seton Hall":{"spread":14.83,"prob":0.871553},"Seton Hall|||Missouri":{"spread":-14.83,"prob":0.128447},"Southern|||Samford":{"spread":3.35,"prob":0.604066},"Samford|||Southern":{"spread":-3.35,"prob":0.395934},"Austin Peay|||UT Rio Grande Valley":{"spread":8.9125,"prob":0.766195},"UT Rio Grande Valley|||Austin Peay":{"spread":-8.9125,"prob":0.233805},"Ohio|||UMBC":{"spread":11.645,"prob":0.773033},"UMBC|||Ohio":{"spread":-11.645,"prob":0.226967},"Merrimack|||NJIT":{"spread":2.1175,"prob":0.539711},"NJIT|||Merrimack":{"spread":-2.1175,"prob":0.460289},"Utah|||Eastern Kentucky":{"spread":6.3925,"prob":0.74358},"Eastern Kentucky|||Utah":{"spread":-6.3925,"prob":0.25642},"Monmouth|||Lehigh":{"spread":-1.0575,"prob":0.540686},"Lehigh|||Monmouth":{"spread":1.0575,"prob":0.459314},"St. Bonaventure|||Drexel":{"spread":3.5875,"prob":0.633746},"Drexel|||St. Bonaventure":{"spread":-3.5875,"prob":0.366254},"Wake Forest|||Maryland Eastern Shore":{"spread":23.54,"prob":0.915042},"Maryland Eastern Shore|||Wake Forest":{"spread":-23.54,"prob":0.084958},"Mercyhurst|||Binghamton":{"spread":-2.32,"prob":0.532372},"Binghamton|||Mercyhurst":{"spread":2.32,"prob":0.467628},"George Washington|||Bradley":{"spread":0.9575,"prob":0.586178},"Bradley|||George Washington":{"spread":-0.9575,"prob":0.413822},"South Carolina State|||Morgan State":{"spread":1.17,"prob":0.679285},"Morgan State|||South Carolina State":{"spread":-1.17,"prob":0.320715},"Siena|||Manhattan":{"spread":10.295,"prob":0.759102},"Manhattan|||Siena":{"spread":-10.295,"prob":0.240898},"South Carolina State|||North Carolina Central":{"spread":0.3,"prob":0.520671},"North Carolina Central|||South Carolina State":{"spread":-0.3,"prob":0.479329},"Memphis|||Tulane":{"spread":4.235,"prob":0.678208},"Tulane|||Memphis":{"spread":-4.235,"prob":0.321792},"Ole Miss|||Tennessee":{"spread":5.2425,"prob":0.652787},"Tennessee|||Ole Miss":{"spread":-5.2425,"prob":0.347213},"Monmouth|||Northeastern":{"spread":9.87,"prob":0.724787},"Northeastern|||Monmouth":{"spread":-9.87,"prob":0.275213},"North Carolina Central|||Delaware State":{"spread":5.525,"prob":0.707896},"Delaware State|||North Carolina Central":{"spread":-5.525,"prob":0.292104},"Northwestern State|||East Texas A&M":{"spread":5.9,"prob":0.686824},"East Texas A&M|||Northwestern State":{"spread":-5.9,"prob":0.313176},"North Carolina Central|||Maryland Eastern Shore":{"spread":2.2,"prob":0.702448},"Maryland Eastern Shore|||North Carolina Central":{"spread":-2.2,"prob":0.297552},"Arkansas-Pine Bluff|||VIRGINISL":{"spread":30.85,"prob":0.937165},"VIRGINISL|||Arkansas-Pine Bluff":{"spread":-30.85,"prob":0.062835},"Brown|||Monmouth":{"spread":4.2175,"prob":0.686176},"Monmouth|||Brown":{"spread":-4.2175,"prob":0.313824},"Nevada|||Pacific":{"spread":-0.575,"prob":0.47715},"Pacific|||Nevada":{"spread":0.575,"prob":0.52285},"San Jos\u00e9 State|||Bethesda University":{"spread":65.1575,"prob":0.993317},"Bethesda University|||San Jos\u00e9 State":{"spread":-65.1575,"prob":0.006683},"North Dakota|||Bismarck State":{"spread":-4.18,"prob":0.492287},"Bismarck State|||North Dakota":{"spread":4.18,"prob":0.507713},"Saint Francis|||Delaware State":{"spread":9.05,"prob":0.737857},"Delaware State|||Saint Francis":{"spread":-9.05,"prob":0.262143},"Indiana State|||Eureka":{"spread":31.355,"prob":0.938822},"Eureka|||Indiana State":{"spread":-31.355,"prob":0.061178},"Clemson|||UL Monroe":{"spread":13.0025,"prob":0.75295},"UL Monroe|||Clemson":{"spread":-13.0025,"prob":0.24705},"Southern Illinois|||Austin Peay":{"spread":-0.835,"prob":0.557016},"Austin Peay|||Southern Illinois":{"spread":0.835,"prob":0.442984},"UC Santa Barbara|||Westcliff":{"spread":34.5425,"prob":0.938586},"Westcliff|||UC Santa Barbara":{"spread":-34.5425,"prob":0.061414},"Loyola Marymount|||Westcliff":{"spread":35.5575,"prob":0.938567},"Westcliff|||Loyola Marymount":{"spread":-35.5575,"prob":0.061433},"Northwestern State|||Champion Christian":{"spread":41.9725,"prob":0.987161},"Champion Christian|||Northwestern State":{"spread":-41.9725,"prob":0.012839},"Utah Tech|||Westcliff":{"spread":31.37,"prob":0.938822},"Westcliff|||Utah Tech":{"spread":-31.37,"prob":0.061178}};
+
+// Name resolution: short bracket names → power lookup canonical names
+const CANON={
+  'W. Illinois':'Western Illinois',
+  'S. Dakota St.':'South Dakota State',
+  'F. Dickinson':'Fairleigh Dickinson',
+  '__FF16__':null,'__FF10__':null
+};
+function canon(n){return CANON.hasOwnProperty(n)?(CANON[n]||n):n;}
+function pw(n){const c=canon(n);return POWER[c]!==undefined?POWER[c]:80;}
+
+// Win probability: model prediction if available, else logistic on power diff
+const K=0.0879; // ln(3)/12.5 — calibrated to WCBB spread σ
+function prob(t1,t2){
+  const k1=t1+'|||'+t2,k2=t2+'|||'+t1;
+  if(MPREDS[k1])return MPREDS[k1].prob;
+  if(MPREDS[k2])return 1-MPREDS[k2].prob;
+  return 1/(1+Math.exp(-K*(pw(t1)-pw(t2))));
+}
+function sg(t1,t2){return Math.random()<prob(t1,t2)?t1:t2;}
+
+// ── BRACKET: 4 regions × 8 first-round matchups
+// First Four done: Nebraska (11) and Missouri State (16) won
+// Tonight pending: __FF16__ = Southern or Samford; __FF10__ = Virginia or Arizona State
+const REGIONS=[
+  {id:0,name:'Fort Worth 1',short:'FORT WORTH 1',col:'#38bdf8',r:[
+    [['UConn',1],['UTSA',16]],
+    [['Iowa State',8],['Syracuse',9]],
+    [['Maryland',5],['Murray State',12]],
+    [['North Carolina',4],['W. Illinois',13]],
+    [['Notre Dame',6],['Fairfield',11]],
+    [['Ohio State',3],['Howard',14]],
+    [['Illinois',7],['Colorado',10]],
+    [['Vanderbilt',2],['High Point',15]],
+  ]},
+  {id:1,name:'Sacramento 2',short:'SACRAMENTO 2',col:'#7dd3fc',r:[
+    [['UCLA',1],['California Baptist',16]],
+    [['Oklahoma State',8],['Princeton',9]],
+    [['Ole Miss',5],['Gonzaga',12]],
+    [['Minnesota',4],['Green Bay',13]],
+    [['Baylor',6],['Nebraska',11]],
+    [['Duke',3],['Charleston',14]],
+    [['Texas Tech',7],['Villanova',10]],
+    [['LSU',2],['Jacksonville',15]],
+  ]},
+  {id:2,name:'Fort Worth 3',short:'FORT WORTH 3',col:'#34d399',r:[
+    [['Texas',1],['Missouri State',16]],
+    [['Oregon',8],['Virginia Tech',9]],
+    [['Kentucky',5],['James Madison',12]],
+    [['West Virginia',4],['Miami (OH)',13]],
+    [['Alabama',6],['Rhode Island',11]],
+    [['Louisville',3],['Vermont',14]],
+    [['NC State',7],['Tennessee',10]],
+    [['Michigan',2],['Holy Cross',15]],
+  ]},
+  {id:3,name:'Sacramento 4',short:'SACRAMENTO 4',col:'#fbbf24',r:[
+    [['South Carolina',1],['__FF16__',16]],
+    [['Clemson',8],['USC',9]],
+    [['Michigan State',5],['Colorado State',12]],
+    [['Oklahoma',4],['Idaho',13]],
+    [['Washington',6],['S. Dakota St.',11]],
+    [['TCU',3],['UC San Diego',14]],
+    [['Georgia',7],['__FF10__',10]],
+    [['Iowa',2],['F. Dickinson',15]],
+  ]},
+];
+
+// Seed lookup — built from REGIONS + FF pending teams
+const SEEDS={};
+for(const reg of REGIONS)for(const mu of reg.r)for(const [t,s] of mu){SEEDS[t]=s;}
+SEEDS['Southern']=16;SEEDS['Samford']=16;SEEDS['Virginia']=10;SEEDS['Arizona State']=10;
+
+function sdCls(s){return 's'+Math.max(1,Math.min(16,parseInt(s)||1));}
+
+// ── SIMULATION
+// counts: per-team advancement counts {r32,s16,e8,f4,cg,ch}
+// slotWins: per bracket-slot-id, how many times each team appeared there
+//   slot ids: ri_64_mu_top/bot, ri_32_mu_top/bot, ri_16_mu_top/bot, ri_8_top/bot
+//   FF: ff0_t,ff0_b,ff1_t,ff1_b, champ
+
+function mkCounts(){
+  const c={};
+  const all=new Set();
+  for(const reg of REGIONS)for(const mu of reg.r)for(const [t] of mu)if(!t.startsWith('__'))all.add(t);
+  ['Southern','Samford','Virginia','Arizona State'].forEach(t=>all.add(t));
+  all.forEach(t=>{c[t]={r32:0,s16:0,e8:0,f4:0,cg:0,ch:0}});
+  return c;
+}
+
+// slotWins[slotId][teamName] = count
+let slotWins={};
+function incSlot(sid,t){
+  if(!slotWins[sid])slotWins[sid]={};
+  slotWins[sid][t]=(slotWins[sid][t]||0)+1;
+}
+
+function simTourney(counts){
+  // Resolve tonight's First Four pending
+  const ff16=Math.random()<prob('Southern','Samford')?'Southern':'Samford';
+  const ff10=Math.random()<prob('Virginia','Arizona State')?'Virginia':'Arizona State';
+
+  const rfinals=[];
+  for(let ri=0;ri<4;ri++){
+    const reg=REGIONS[ri];
+
+    // Round of 64 — resolve placeholders, simulate, record
+    const w64=[];
+    for(let mi=0;mi<8;mi++){
+      let t1=reg.r[mi][0][0], t2=reg.r[mi][1][0];
+      if(t1==='__FF16__')t1=ff16; if(t2==='__FF16__')t2=ff16;
+      if(t1==='__FF10__')t1=ff10; if(t2==='__FF10__')t2=ff10;
+      const w=sg(t1,t2);
+      if(counts[w])counts[w].r32++;
+      w64.push(w);
+    }
+
+    // Round of 32 — pairs (0,1),(2,3),(4,5),(6,7) → 4 winners
+    const w32=[];
+    for(let i=0;i<8;i+=2){
+      const w=sg(w64[i],w64[i+1]);
+      if(counts[w])counts[w].s16++;
+      const si=i/2; // 0,1,2,3
+      incSlot(ri+'_32_'+si+'_t',w64[i]);
+      incSlot(ri+'_32_'+si+'_b',w64[i+1]);
+      w32.push(w);
+    }
+
+    // Sweet 16 — pairs (0,1),(2,3) → 2 winners
+    const w16=[];
+    for(let i=0;i<4;i+=2){
+      const w=sg(w32[i],w32[i+1]);
+      if(counts[w])counts[w].e8++;
+      const si=i/2; // 0,1
+      incSlot(ri+'_16_'+si+'_t',w32[i]);
+      incSlot(ri+'_16_'+si+'_b',w32[i+1]);
+      w16.push(w);
+    }
+
+    // Elite 8 — w16[0] vs w16[1] → 1 winner
+    const rw=sg(w16[0],w16[1]);
+    if(counts[rw])counts[rw].f4++;
+    incSlot(ri+'_8_t',w16[0]);
+    incSlot(ri+'_8_b',w16[1]);
+    rfinals.push(rw);
+  }
+
+  // Final Four: r0 vs r3, r1 vs r2
+  const sf1=sg(rfinals[0],rfinals[3]);
+  const sf2=sg(rfinals[1],rfinals[2]);
+  if(counts[sf1])counts[sf1].cg++;
+  if(counts[sf2])counts[sf2].cg++;
+  incSlot('ff0_t',rfinals[0]); incSlot('ff0_b',rfinals[3]);
+  incSlot('ff1_t',rfinals[1]); incSlot('ff1_b',rfinals[2]);
+  const ch=sg(sf1,sf2);
+  if(counts[ch])counts[ch].ch++;
+  incSlot('champ',ch);
+}
+
+const N=10000; let RES=null;
+
+function runSims(){
+  const btn=document.getElementById('btnSim'),
+    pbw=document.getElementById('pbw'),pbf=document.getElementById('pbf'),
+    st=document.getElementById('simStat');
+  btn.disabled=true; pbw.style.display='block';
+  slotWins={};
+  const counts=mkCounts();
+  const CHUNK=500; let done=0;
+  function go(){
+    const end=Math.min(done+CHUNK,N);
+    while(done<end){simTourney(counts);done++;}
+    pbf.style.width=(done/N*100)+'%';
+    st.textContent=done.toLocaleString()+' / '+N.toLocaleString();
+    if(done<N){requestAnimationFrame(go);return;}
+    RES=counts;
+    pbw.style.display='none'; btn.disabled=false;
+    btn.textContent='↺ RERUN'; st.textContent=N.toLocaleString()+' sims complete';
+    document.getElementById('sbrR').textContent='n='+N.toLocaleString();
+    renderResults();
+  }
+  requestAnimationFrame(go);
+}
+
+// ── BRACKET DOM BUILDING
+// 
+// Slot heights (px): slot=29, gap-between-slots=1, mb-per-mu=7
+// One matchup block = 29+1+29+7 = 66px
+// R32 spacer top = 66/2-7 = 26px; between pairs = 66px
+// S16 spacer top = 66+26 = 92px; between pairs = 66*2+7 = 139px  
+// E8 spacer top = 66*3+26+7 = 231px
+// (tuned by eye to bracket spacing)
+
+function mkSlot(team,seed,uid){
+  const isPend=team.startsWith('__');
+  const d=document.createElement('div');
+  d.className='slot'+(isPend?' pend':'');
+  d.id='sl_'+uid; d.dataset.uid=uid;
+  const dn=team==='__FF16__'?'STHN/SAMFD':team==='__FF10__'?'VA/AZST':team;
+  d.innerHTML=
+    '<span class="sd '+sdCls(seed)+'">'+seed+'</span>'+
+    '<span class="tname">'+dn+'</span>'+
+    '<span class="advpct" id="ap_'+uid+'"></span>'+
+    '<div class="pbar" id="pb_'+uid+'" style="width:0"></div>';
+  d._team=team;
+  return d;
+}
+
+function mkTBDSlot(uid){
+  const d=document.createElement('div');
+  d.className='slot tbd'; d.id='sl_'+uid; d.dataset.uid=uid;
+  d.innerHTML='<span class="sd s8" style="opacity:.4">?</span>'+
+    '<span class="tname" style="color:var(--mut)">TBD</span>'+
+    '<span class="advpct" id="ap_'+uid+'"></span>'+
+    '<div class="pbar" id="pb_'+uid+'"></div>';
+  d._team=null;
+  return d;
+}
+
+function mu(mirror){
+  const d=document.createElement('div');
+  d.className='mu'+(mirror?' mirr':'');
+  return d;
+}
+function spacer(h){const d=document.createElement('div');d.style.height=h+'px';return d;}
+function col(lbl,c){
+  const d=document.createElement('div'); d.className='rnd-col';
+  const h=document.createElement('div'); h.className='rnd-hdr';
+  h.textContent=lbl; if(c)h.style.color=c; d.appendChild(h); return d;
+}
+
+function buildRegion(ri,mirror){
+  const reg=REGIONS[ri];
+  const c64=col(reg.short,reg.col);
+  const c32=col('ROUND 32');
+  const c16=col('SWEET 16');
+  const c8=col('ELITE EIGHT');
+
+  // R64: 8 matchups straight
+  for(let i=0;i<8;i++){
+    const m=mu(mirror);
+    m.appendChild(mkSlot(reg.r[i][0][0],reg.r[i][0][1],ri+'_64_'+i+'_t'));
+    m.appendChild(mkSlot(reg.r[i][1][0],reg.r[i][1][1],ri+'_64_'+i+'_b'));
+    c64.appendChild(m);
+  }
+
+  // R32: 4 matchups with spacing
+  c32.appendChild(spacer(26));
+  for(let i=0;i<4;i++){
+    const m=mu(mirror);
+    m.appendChild(mkTBDSlot(ri+'_32_'+i+'_t'));
+    m.appendChild(mkTBDSlot(ri+'_32_'+i+'_b'));
+    c32.appendChild(m);
+    if(i<3)c32.appendChild(spacer(66));
+  }
+
+  // S16: 2 matchups
+  c16.appendChild(spacer(92));
+  for(let i=0;i<2;i++){
+    const m=mu(mirror);
+    m.appendChild(mkTBDSlot(ri+'_16_'+i+'_t'));
+    m.appendChild(mkTBDSlot(ri+'_16_'+i+'_b'));
+    c16.appendChild(m);
+    if(i<1)c16.appendChild(spacer(139));
+  }
+
+  // E8: 1 matchup
+  c8.appendChild(spacer(224));
+  const m8=mu(mirror);
+  m8.appendChild(mkTBDSlot(ri+'_8_t'));
+  m8.appendChild(mkTBDSlot(ri+'_8_b'));
+  c8.appendChild(m8);
+
+  const cols=[c64,c32,c16,c8];
+  return mirror?cols.reverse():cols;
+}
+
+function buildBracket(){
+  const inner=document.getElementById('bInner'); inner.innerHTML='';
+  buildRegion(0,false).forEach(c=>inner.appendChild(c));
+  buildRegion(1,false).forEach(c=>inner.appendChild(c));
+
+  // Center: FF + champion
+  const cc=document.createElement('div'); cc.className='center-col';
+  function ffCard(id,lbl){
+    const c=document.createElement('div'); c.className='ff-card';
+    c.innerHTML='<div class="ff-lbl">'+lbl+'</div>'+
+      '<div class="ff-nm" id="'+id+'_nm">—</div>'+
+      '<div class="ff-pp" id="'+id+'_pp"></div>';
+    return c;
+  }
+  const chc=document.createElement('div'); chc.className='champ-card';
+  chc.innerHTML='<div class="champ-ico">🏆</div>'+
+    '<div class="champ-lbl">2026 Champion</div>'+
+    '<div class="champ-nm" id="champ_nm">—</div>'+
+    '<div class="champ-pp" id="champ_pp"></div>';
+
+  cc.appendChild(ffCard('ff0','Fort Worth 1'));
+  cc.appendChild(ffCard('ff1','Sacramento 2'));
+  cc.appendChild(chc);
+  cc.appendChild(ffCard('ff2','Fort Worth 3'));
+  cc.appendChild(ffCard('ff3','Sacramento 4'));
+  inner.appendChild(cc);
+
+  buildRegion(2,true).forEach(c=>inner.appendChild(c));
+  buildRegion(3,true).forEach(c=>inner.appendChild(c));
+}
+
+// ── RENDER RESULTS: fill bracket slots with modal winner + probability
+
+// Fill a specific slot element with winner data
+function fillSlot(uid, teamName, advCount){
+  const sl=document.getElementById('sl_'+uid);
+  if(!sl)return;
+  const seed=SEEDS[teamName]||1;
+  const pct=(advCount/N*100);
+  sl.className='slot filled';
+  sl._team=teamName;
+  sl.innerHTML=
+    '<span class="sd '+sdCls(seed)+'">'+seed+'</span>'+
+    '<span class="tname">'+teamName+'</span>'+
+    '<span class="advpct" id="ap_'+uid+'">'+pct.toFixed(1)+'%</span>'+
+    '<div class="pbar" id="pb_'+uid+'" style="width:'+pct.toFixed(1)+'%"></div>';
+}
+
+// Get modal winner for a slot from slotWins
+function modalWinner(sid){
+  const w=slotWins[sid]; if(!w)return null;
+  return Object.entries(w).sort((a,b)=>b[1]-a[1])[0];
+}
+
+function renderResults(){
+  if(!RES)return;
+
+  // ── Fill later-round bracket slots
+  for(let ri=0;ri<4;ri++){
+    // R32: slots ri_32_0_t, ri_32_0_b ... ri_32_3_t, ri_32_3_b
+    for(let i=0;i<4;i++){
+      for(const pos of ['t','b']){
+        const sid=ri+'_32_'+i+'_'+pos;
+        const winner=modalWinner(sid);
+        if(winner)fillSlot(sid,winner[0],winner[1]);
+      }
+    }
+    // S16: ri_16_0_t, ri_16_0_b, ri_16_1_t, ri_16_1_b
+    for(let i=0;i<2;i++){
+      for(const pos of ['t','b']){
+        const sid=ri+'_16_'+i+'_'+pos;
+        const winner=modalWinner(sid);
+        if(winner)fillSlot(sid,winner[0],winner[1]);
+      }
+    }
+    // E8: ri_8_t, ri_8_b
+    for(const pos of ['t','b']){
+      const sid=ri+'_8_'+pos;
+      const winner=modalWinner(sid);
+      if(winner)fillSlot(sid,winner[0],winner[1]);
+    }
+  }
+
+  // ── FF slot cards
+  for(let ri=0;ri<4;ri++){
+    const reg=REGIONS[ri];
+    const teams=reg.r.flatMap(m=>m.map(t=>t[0])).filter(t=>!t.startsWith('__'));
+    if(ri===3)teams.push('Southern','Samford','Virginia','Arizona State');
+    const best=teams.filter(t=>RES[t]).sort((a,b)=>RES[b].f4-RES[a].f4)[0];
+    if(best&&RES[best]){
+      const nm=document.getElementById('ff'+ri+'_nm');
+      const pp=document.getElementById('ff'+ri+'_pp');
+      if(nm){nm.textContent=best;pp.textContent='FF '+(RES[best].f4/N*100).toFixed(1)+'% · Ch '+(RES[best].ch/N*100).toFixed(1)+'%';}
+    }
+  }
+
+  // ── Champion card
+  const champ=modalWinner('champ');
+  if(champ){
+    document.getElementById('champ_nm').textContent=champ[0];
+    const chPct=(champ[1]/N*100).toFixed(1);
+    document.getElementById('champ_pp').textContent=chPct+'% win probability';
+  }
+
+  // ── R64 slots: show advance-to-R32 % on each team
+  for(let ri=0;ri<4;ri++){
+    for(let mi=0;mi<8;mi++){
+      for(const pos of ['t','b']){
+        const uid=ri+'_64_'+mi+'_'+pos;
+        const sl=document.getElementById('sl_'+uid);
+        if(!sl||!sl._team||sl._team.startsWith('__'))continue;
+        const t=sl._team;
+        const c=RES[t]; if(!c)continue;
+        const advPct=c.r32/N*100;
+        const ap=sl.querySelector('.advpct');
+        const pb=sl.querySelector('.pbar');
+        if(ap)ap.textContent=advPct.toFixed(1)+'%';
+        if(pb)pb.style.width=Math.min(100,advPct)+'%';
+      }
+    }
+  }
+
+  // ── Odds panel
+  const sorted=Object.entries(RES).filter(([t])=>!t.startsWith('__'))
+    .sort((a,b)=>b[1].ch-a[1].ch).filter(([,c])=>c.ch>0);
+  const topCh=sorted[0]?.[1].ch||1;
+  const og=document.getElementById('og'); og.innerHTML='';
+  sorted.forEach(([t,c],i)=>{
+    const sd=SEEDS[t]||1;
+    const row=document.createElement('div'); row.className='or';
+    row.innerHTML=
+      '<span class="or-rk">'+(i+1)+'</span>'+
+      '<span class="or-sd '+sdCls(sd)+' s'+Math.max(1,Math.min(16,sd))+'">'+sd+'</span>'+
+      '<span class="or-nm">'+t+'</span>'+
+      '<span class="or-pc">'+(c.ch/N*100).toFixed(1)+'%</span>'+
+      '<div class="or-bar"><div class="or-bf" style="width:'+(c.ch/topCh*100).toFixed(1)+'%"></div></div>';
+    og.appendChild(row);
+  });
+}
+
+buildBracket();
+</script>
+</body>
+</html>
