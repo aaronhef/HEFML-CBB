@@ -20,7 +20,7 @@ base_url <- "https://api.collegebasketballdata.com/"
 # environment variable is not set. Replace with your own key for production.
 api_key  <- Sys.getenv(
   "HEFML_CBB_API_KEY",
-  "iF6R6JQZgMSDa53x4XnUsbPQ8yh+SNav03/N6yF8sWK8zSls4DAJD3REERc09YIf"
+  ""
 )
 if (!nzchar(api_key)) {
   warning("Set HEFML_CBB_API_KEY in the environment for authenticated API calls.")
@@ -442,7 +442,7 @@ conference_power_rankings <- predictions_2025 %>%
 
 conference_power_rankings
 
-Sys.setenv(GEMINI_API_KEY = "AIzaSyBOrlSM3GhTZUHt1p9wD1gRsSljQsZrdX0")
+Sys.setenv(GEMINI_API_KEY = "")
 
 # -------------------------
 # BOT PRE-SITE (Gemini) using your working Bovada lines pipeline
@@ -453,7 +453,7 @@ suppressPackageStartupMessages({
   library(httr2)
 })
 
-Sys.setenv(GEMINI_API_KEY = "AIzaSyBOrlSM3GhTZUHt1p9wD1gRsSljQsZrdX0")
+Sys.setenv(GEMINI_API_KEY = "")
 
 filter_ny_today_plus1 <- function(df, start_col = "startDate") {
   if (is.null(df) || nrow(df) == 0) return(NULL)
