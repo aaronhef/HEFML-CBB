@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HefML WBB — March 27, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0b0d;
+    --bg2: #111318;
+    --bg3: #181c23;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6e0;
+    --muted: #6b7280;
+    --accent: #c8f04a;
+    --accent2: #f0a832;
+    --accent3: #5b8fff;
+    --red: #ff4f4f;
+    --serif: 'Instrument Serif', Georgia, serif;
+    --mono: 'DM Mono', 'Courier New', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(20px, 5vw, 80px);
+    background: var(--bg);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 48px 0 32px;
+    gap: 24px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 1.0;
+    color: var(--text);
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .header-meta {
+    text-align: right;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.3s;
+  }
+
+  .header-meta .date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .header-meta .model-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── EDGE SUMMARY BAR ── */
+  .summary-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(20px, 5vw, 80px);
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards 0.4s;
+  }
+
+  .summary-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .summary-stat {
+    padding: 16px 32px 16px 0;
+    margin-right: 32px;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .summary-stat:last-child { border-right: none; }
+
+  .summary-stat .label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .summary-stat .value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .summary-stat .value.green { color: var(--accent); }
+  .summary-stat .value.amber { color: var(--accent2); }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(32px, 5vw, 64px) clamp(20px, 5vw, 80px);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── EDGE CARDS ── */
+  .top-edges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .edge-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .edge-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .edge-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .edge-card.hot::before { background: var(--accent); }
+  .edge-card.medium::before { background: var(--accent2); }
+  .edge-card.lean::before { background: var(--accent3); }
+
+  .edge-card .card-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .edge-card.hot .card-tag { color: var(--accent); }
+  .edge-card.medium .card-tag { color: var(--accent2); }
+  .edge-card.lean .card-tag { color: var(--accent3); }
+
+  .tag-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .edge-card.hot .tag-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .edge-card.medium .tag-dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .edge-card.lean .tag-dot { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+
+  .card-matchup {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .card-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+
+  .card-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .metric {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 12px;
+  }
+
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .metric-value.accent { color: var(--accent); }
+  .metric-value.amber { color: var(--accent2); }
+  .metric-value.blue { color: var(--accent3); }
+  .metric-value.red { color: var(--red); }
+
+  .edge-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 2px;
+    margin-bottom: 14px;
+  }
+
+  .edge-badge.hot { background: rgba(200,240,74,0.08); color: var(--accent); border: 1px solid rgba(200,240,74,0.2); }
+  .edge-badge.amber { background: rgba(240,168,50,0.08); color: var(--accent2); border: 1px solid rgba(240,168,50,0.2); }
+  .edge-badge.blue { background: rgba(91,143,255,0.08); color: var(--accent3); border: 1px solid rgba(91,143,255,0.2); }
+
+  .card-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  .card-note strong { color: var(--text); font-weight: 500; }
+
+  /* WIN PROBABILITY BAR */
+  .prob-bar-wrap {
+    margin-bottom: 16px;
+  }
+  .prob-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .prob-bar {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .prob-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .prob-fill.green { background: var(--accent); }
+  .prob-fill.amber { background: var(--accent2); }
+  .prob-fill.blue { background: var(--accent3); }
+
+  /* ── ALL GAMES TABLE ── */
+  .games-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards 0.6s;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  thead th:not(:first-child) { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  tbody tr.edge-row { background: rgba(200,240,74,0.03); }
+  tbody tr.edge-row:hover { background: rgba(200,240,74,0.06); }
+  tbody tr.edge-row2 { background: rgba(240,168,50,0.03); }
+  tbody tr.edge-row2:hover { background: rgba(240,168,50,0.06); }
+
+  td {
+    padding: 14px 16px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  td:not(:first-child) { text-align: right; }
+
+  .td-matchup { 
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .td-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .td-prob { font-weight: 500; }
+  .td-prob.strong { color: var(--accent); }
+  .td-prob.medium { color: var(--accent2); }
+
+  .edge-cell {
+    font-weight: 500;
+  }
+  .edge-cell.big { color: var(--accent); }
+  .edge-cell.medium { color: var(--accent2); }
+  .edge-cell.small { color: var(--muted); }
+
+  .recommend-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .recommend-pill.play { background: rgba(200,240,74,0.1); color: var(--accent); border: 1px solid rgba(200,240,74,0.2); }
+  .recommend-pill.lean { background: rgba(240,168,50,0.08); color: var(--accent2); border: 1px solid rgba(240,168,50,0.2); }
+  .recommend-pill.pass { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── CONFIDENCE INTERVAL SECTION ── */
+  .ci-section {
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards 0.7s;
+  }
+
+  .ci-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .ci-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .ci-matchup {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .ci-bar-wrap {
+    position: relative;
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  .ci-axis {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .ci-zero {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background: var(--border2);
+    left: 50%;
+  }
+
+  .ci-range {
+    position: absolute;
+    height: 8px;
+    border-radius: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+  }
+
+  .ci-point {
+    position: absolute;
+    width: 3px;
+    height: 20px;
+    border-radius: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .ci-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .ci-labels .ci-pred {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px clamp(20px, 5vw, 80px);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .edge-card:nth-child(1) { animation-delay: 0.35s; }
+  .edge-card:nth-child(2) { animation-delay: 0.45s; }
+  .edge-card:nth-child(3) { animation-delay: 0.55s; }
+
+  /* ── BLINK CURSOR ON EYEBROW ── */
+  .cursor {
+    display: inline-block;
+    width: 6px;
+    height: 10px;
+    background: var(--accent);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">HefML · Women's College Basketball <span class="cursor"></span></div>
+      <h1>Today's <em>edges</em><br>& model output</h1>
+    </div>
+    <div class="header-meta">
+      <div class="date">MARCH 27, 2026</div>
+      <div class="model-tag">CatBoost + Particle Filter</div>
+    </div>
+  </div>
+</header>
+
+<div class="summary-bar">
+  <div class="summary-inner">
+    <div class="summary-stat">
+      <div class="label">Games today</div>
+      <div class="value">8</div>
+    </div>
+    <div class="summary-stat">
+      <div class="label">Strong edges</div>
+      <div class="value green">1</div>
+    </div>
+    <div class="summary-stat">
+      <div class="label">Leans</div>
+      <div class="value amber">2</div>
+    </div>
+    <div class="summary-stat">
+      <div class="label">Best edge (pts)</div>
+      <div class="value green">+12.6</div>
+    </div>
+    <div class="summary-stat">
+      <div class="label">Best play</div>
+      <div class="value" style="font-size:14px">Marshall +14</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- TOP EDGES -->
+  <div class="section-label">Top edges</div>
+
+  <div class="top-edges">
+
+    <!-- MARSHALL +14 -->
+    <div class="edge-card hot">
+      <div class="card-tag"><span class="tag-dot"></span>Best bet</div>
+      <div class="card-matchup">Marshall +14<br>@ Youngstown St</div>
+      <div class="card-time">6:30 PM EDT · WBIT First Round</div>
+
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-label">
+          <span>Youngstown win prob</span>
+          <span>46.9%</span>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill green" style="width: 46.9%"></div>
+        </div>
+      </div>
+
+      <div class="card-metrics">
+        <div class="metric">
+          <div class="metric-label">Model spread</div>
+          <div class="metric-value amber">YSU -1.4</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Market spread</div>
+          <div class="metric-value">YSU -14</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Edge vs market</div>
+          <div class="metric-value accent">+12.6 pts</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Model CI (80%)</div>
+          <div class="metric-value" style="font-size:13px">−14 to +16</div>
+        </div>
+      </div>
+      <div class="edge-badge hot">★ Play: Marshall +14</div>
+      <div class="card-note">
+        Market has Youngstown as a 14-pt home favorite. Model sees this as nearly a coin flip — 46.9% YSU, 53.1% Marshall. That's a 12+ point gap you can't explain away with home-court alone. <strong>Best edge on the board today.</strong>
+      </div>
+    </div>
+
+    <!-- LSU vs DUKE -->
+    <div class="edge-card medium">
+      <div class="card-tag"><span class="tag-dot"></span>Verify + play</div>
+      <div class="card-matchup">LSU vs Duke</div>
+      <div class="card-time">10:00 PM EDT · WBIT First Round</div>
+
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-label">
+          <span>LSU win prob</span>
+          <span>85.5%</span>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill amber" style="width: 85.5%"></div>
+        </div>
+      </div>
+
+      <div class="card-metrics">
+        <div class="metric">
+          <div class="metric-label">Model spread</div>
+          <div class="metric-value amber">LSU −23.5</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Market (est.)</div>
+          <div class="metric-value">Duke −3.2</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">True shooting (LSU)</div>
+          <div class="metric-value accent">58.9%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">True shooting (Duke)</div>
+          <div class="metric-value">52.3%</div>
+        </div>
+      </div>
+      <div class="edge-badge amber">⚑ Confirm line before betting</div>
+      <div class="card-note">
+        Model is extremely bullish on LSU (85.5% win prob, −23.5 spread). If Duke is being favored on current markets, this is enormous. <strong>Verify live line first — potential high-value play.</strong>
+      </div>
+    </div>
+
+    <!-- UCLA vs MINNESOTA -->
+    <div class="edge-card lean">
+      <div class="card-tag"><span class="tag-dot"></span>Secondary lean</div>
+      <div class="card-matchup">UCLA −6<br>vs Minnesota</div>
+      <div class="card-time">7:30 PM EDT · NCAA Tournament</div>
+
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-label">
+          <span>UCLA win prob</span>
+          <span>78.5%</span>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill blue" style="width: 78.5%"></div>
+        </div>
+      </div>
+
+      <div class="card-metrics">
+        <div class="metric">
+          <div class="metric-label">Model spread</div>
+          <div class="metric-value blue">UCLA −12.5</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Market spread</div>
+          <div class="metric-value">UCLA −6</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Edge vs market</div>
+          <div class="metric-value blue">+6.5 pts</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">eFG% edge</div>
+          <div class="metric-value blue">+6.9pp</div>
+        </div>
+      </div>
+      <div class="edge-badge blue">→ Lean: UCLA −6</div>
+      <div class="card-note">
+        Model projects UCLA covering by ~12.5 while market sits at −6. UCLA carries meaningful eFG% and true shooting edges over Minnesota. <strong>Decent secondary play if looking for volume.</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ALL GAMES TABLE -->
+  <div class="section-label" style="margin-top: 0;">All games — full model output</div>
+
+  <div class="games-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Matchup</th>
+          <th>Win prob (home)</th>
+          <th>Model spread</th>
+          <th>Market spread</th>
+          <th>Edge (pts)</th>
+          <th>CI 80%</th>
+          <th>Rec.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="edge-row">
+          <td>
+            <span class="td-matchup">Youngstown St vs Marshall</span>
+            <span class="td-time">6:30 PM EDT</span>
+          </td>
+          <td><span class="td-prob medium">46.9% YSU</span></td>
+          <td>YSU −1.4</td>
+          <td>YSU −14</td>
+          <td><span class="edge-cell big">+12.6</span></td>
+          <td>−14 to +16</td>
+          <td><span class="recommend-pill play">Play</span></td>
+        </tr>
+        <tr class="edge-row2">
+          <td>
+            <span class="td-matchup">LSU vs Duke</span>
+            <span class="td-time">10:00 PM EDT</span>
+          </td>
+          <td><span class="td-prob strong">85.5% LSU</span></td>
+          <td>LSU −23.5</td>
+          <td>Duke −3.2 (?)</td>
+          <td><span class="edge-cell medium">~27</span></td>
+          <td>+3 to +55</td>
+          <td><span class="recommend-pill lean">Verify</span></td>
+        </tr>
+        <tr class="edge-row2">
+          <td>
+            <span class="td-matchup">UCLA vs Minnesota</span>
+            <span class="td-time">7:30 PM EDT</span>
+          </td>
+          <td><span class="td-prob strong">78.5% UCLA</span></td>
+          <td>UCLA −12.5</td>
+          <td>UCLA −6</td>
+          <td><span class="edge-cell medium">+6.5</span></td>
+          <td>−6 to +30</td>
+          <td><span class="recommend-pill lean">Lean</span></td>
+        </tr>
+        <tr>
+          <td>
+            <span class="td-matchup">Vanderbilt vs Notre Dame</span>
+            <span class="td-time">2:30 PM EDT</span>
+          </td>
+          <td><span class="td-prob">78.0% Vandy</span></td>
+          <td>Vandy −6</td>
+          <td>Vandy −6</td>
+          <td><span class="edge-cell small">~0</span></td>
+          <td>−6 to +30</td>
+          <td><span class="recommend-pill pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>
+            <span class="td-matchup">UConn vs North Carolina</span>
+            <span class="td-time">5:00 PM EDT</span>
+          </td>
+          <td><span class="td-prob strong">82.8% UConn</span></td>
+          <td>UConn −18.5</td>
+          <td>UConn −3.2</td>
+          <td><span class="edge-cell small">*</span></td>
+          <td>−3 to +43</td>
+          <td><span class="recommend-pill pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>
+            <span class="td-matchup">George Washington vs Loyola Chi</span>
+            <span class="td-time">6:00 PM EDT</span>
+          </td>
+          <td><span class="td-prob strong">88.7% GW</span></td>
+          <td>GW −6</td>
+          <td>GW −6</td>
+          <td><span class="edge-cell small">~0</span></td>
+          <td>−6 to +36</td>
+          <td><span class="recommend-pill pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>
+            <span class="td-matchup">Illinois State vs Abilene Christian</span>
+            <span class="td-time">7:30 PM EDT</span>
+          </td>
+          <td><span class="td-prob">77.6% ILST</span></td>
+          <td>ILST −9</td>
+          <td>ILST −9</td>
+          <td><span class="edge-cell small">~0</span></td>
+          <td>−9 to +27</td>
+          <td><span class="recommend-pill pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>
+            <span class="td-matchup">Arkansas State vs Purdue Fort Wayne</span>
+            <span class="td-time">2:00 PM EDT</span>
+          </td>
+          <td><span class="td-prob">64.5% ARST</span></td>
+          <td>ARST −10</td>
+          <td>No line</td>
+          <td><span class="edge-cell small">—</span></td>
+          <td>−24 to +4</td>
+          <td><span class="recommend-pill pass">Monitor</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CI VISUALIZATION -->
+  <div class="ci-section">
+    <div class="section-label">Spread prediction intervals (80% CI)</div>
+    <div class="ci-grid" id="ci-grid"></div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>HefML — CatBoost + Particle Filter · NCAAWB 2025–26</span>
+    <span>Generated March 27, 2026 · For informational use only</span>
+  </div>
+</footer>
+
+<script>
+// Animate probability bars on load
+document.querySelectorAll('.prob-fill').forEach(el => {
+  const w = el.style.width;
+  el.style.width = '0%';
+  requestAnimationFrame(() => {
+    setTimeout(() => { el.style.width = w; }, 600);
+  });
+});
+
+// CI visualization data
+const games = [
+  { matchup: 'Marshall +14\n@ Youngstown St', pred: -1.4, lower: -14, upper: 16, market: -14, color: '#c8f04a' },
+  { matchup: 'LSU vs Duke', pred: 23.5, lower: 3, upper: 55, market: -3.2, color: '#f0a832' },
+  { matchup: 'UCLA vs Minnesota', pred: 12.5, lower: -6, upper: 30, market: 6, color: '#5b8fff' },
+  { matchup: 'Vanderbilt vs Notre Dame', pred: 6, lower: -6, upper: 30, market: 6, color: '#6b7280' },
+  { matchup: 'UConn vs UNC', pred: 18.5, lower: -3, upper: 43, market: 3.2, color: '#6b7280' },
+  { matchup: 'GW vs Loyola Chi', pred: 6, lower: -6, upper: 36, market: 6, color: '#6b7280' },
+  { matchup: 'Illinois St vs Abilene Chr', pred: 9, lower: -9, upper: 27, market: 9, color: '#6b7280' },
+  { matchup: 'Arkansas St vs PFW', pred: 10, lower: -24, upper: 4, market: null, color: '#6b7280' },
+];
+
+const grid = document.getElementById('ci-grid');
+const globalMin = -30, globalMax = 60, range = globalMax - globalMin;
+
+games.forEach(g => {
+  const lPct = ((g.lower - globalMin) / range) * 100;
+  const uPct = ((g.upper - globalMin) / range) * 100;
+  const pPct = ((g.pred - globalMin) / range) * 100;
+  const mPct = g.market !== null ? ((g.market - globalMin) / range) * 100 : null;
+  const zeroPct = ((0 - globalMin) / range) * 100;
+
+  const el = document.createElement('div');
+  el.className = 'ci-item';
+  el.innerHTML = `
+    <div class="ci-matchup">${g.matchup.replace('\n', '<br>')}</div>
+    <div class="ci-bar-wrap">
+      <div style="position:absolute;width:1px;height:100%;background:rgba(255,255,255,0.1);left:${zeroPct}%;"></div>
+      <div class="ci-range" style="left:${lPct}%;width:${uPct - lPct}%;background:${g.color};"></div>
+      <div class="ci-point" style="left:calc(${pPct}% - 1.5px);background:${g.color};opacity:1;"></div>
+      ${mPct !== null ? `<div style="position:absolute;width:1px;height:100%;background:rgba(255,255,255,0.35);left:${mPct}%;top:0;" title="Market line"></div>` : ''}
+    </div>
+    <div class="ci-labels">
+      <span>${g.lower > 0 ? '+' : ''}${g.lower}</span>
+      <span class="ci-pred" style="color:${g.color}">Pred: ${g.pred > 0 ? '+' : ''}${g.pred}</span>
+      <span>+${g.upper}</span>
+    </div>
+  `;
+  grid.appendChild(el);
+});
+</script>
+</body>
+</html>
