@@ -56,6 +56,69 @@ build_hefml_hoops_site <- function(pred_data,
     character(1)
   )
 
+  # --- conference power / ranking info (used for chips + table) ----
+  needed_conf_cols <- c("homeConference", "awayConference",
+                        "home_conf_power", "away_conf_power")
+
+  conf_info <- list(conf_tbl = NULL, rank_lookup = NULL)
+
+  if (all(needed_conf_cols %in% names(pred_data))) {
+    conf_home <- data.frame(
+      conf  = as.character(pred_data$homeConference),
+      power = as.numeric(pred_data$home_conf_power),
+      stringsAsFactors = FALSE
+    )
+    conf_away <- data.frame(
+      conf  = as.character(pred_data$awayConference),
+      power = as.numeric(pred_data$away_conf_power),
+      stringsAsFactors = FALSE
+    )
+    conf_df <- rbind(conf_home, conf_away)
+
+    # drop missing / blank conference names or powers
+    conf_df <- conf_df[!is.na(conf_df$conf) & conf_df$conf != "" &
+                       !is.na(conf_df$power), , drop = FALSE]
+
+    if (nrow(conf_df) > 0) {
+      avg_power <- tapply(conf_df$power, conf_df$conf,
+                          function(x) mean(x, na.rm = TRUE))
+      n_games   <- tapply(conf_df$power, conf_df$conf,
+                          function(x) sum(!is.na(x)))
+
+      conf_tbl <- data.frame(
+        conference     = names(avg_power),
+        avg_conf_power = as.numeric(avg_power),
+        n_games        = as.integer(n_games[names(avg_power)]),
+        stringsAsFactors = FALSE
+      )
+
+      # rank by average power, desc; break ties by name
+      conf_tbl <- conf_tbl[order(-conf_tbl$avg_conf_power,
+                                 conf_tbl$conference), , drop = FALSE]
+
+      # keep top 32 only
+      if (nrow(conf_tbl) > 32) {
+        conf_tbl <- conf_tbl[1:32, , drop = FALSE]
+      }
+
+      rank_lookup <- seq_len(nrow(conf_tbl))
+      names(rank_lookup) <- conf_tbl$conference
+
+      conf_info$conf_tbl <- conf_tbl
+      conf_info$rank_lookup <- rank_lookup
+    }
+  }
+
+  rank_to_tier <- function(rank_val) {
+    if (is.na(rank_val)) return(list(label = "", cls = ""))
+    if (rank_val <= 2)   return(list(label = "Top 2",  cls = "tier-top2"))
+    if (rank_val <= 5)   return(list(label = "Top 5",  cls = "tier-top5"))
+    if (rank_val <= 10)  return(list(label = "Top 10", cls = "tier-top10"))
+    if (rank_val <= 15)  return(list(label = "Top 15", cls = "tier-top15"))
+    if (rank_val <= 20)  return(list(label = "Top 20", cls = "tier-top20"))
+    list(label = "21+", cls = "tier-21plus")
+  }
+
   # --- HTML HEAD / STYLES / FILTER SCRIPT --------------------------
   html_head <- paste(
 '<!doctype html><html><head>
@@ -106,6 +169,19 @@ body{margin:0;background:#000;color:var(--txt);font-family:-apple-system,BlinkMa
                    transform-origin:left center;}
 
 
+/* conference power table */
+.conf-card{margin:10px 0;}
+.conf-title{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.conf-title b{color:var(--txt);}
+.conf-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;}
+.conf-table th,.conf-table td{padding:4px 6px;text-align:left;}
+.conf-table thead th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+                     color:var(--muted);border-bottom:1px solid rgba(148,163,184,.5);}
+.conf-table tbody tr:nth-child(even){background:rgba(15,23,42,.7);}
+.conf-rank{width:28px;font-weight:700;color:var(--muted);}
+.conf-name{font-weight:600;}
+.conf-games,.conf-power{text-align:right;font-variant-numeric:tabular-nums;}
+
 /* month filter */
 .filter-row{display:flex;align-items:center;gap:8px;margin:0 0 8px 0;font-size:12px;color:var(--muted);}
 .filter-row select{background:#05060a;color:var(--txt);border-radius:999px;border:1px solid rgba(255,255,255,.22);padding:4px 10px;font-size:12px}
@@ -116,6 +192,14 @@ body{margin:0;background:#000;color:var(--txt);font-family:-apple-system,BlinkMa
 .chip-good{color:#34d399;background:rgba(20,40,24,.55);border-color:#194f2b}
 .chip-bad{color:#f87171;background:rgba(56,20,20,.55);border-color:#5a1f1f}
 .chip-pos{color:var(--away)} .chip-neg{color:var(--home)} /* pos=away fav, neg=home fav */
+.conf-chip{margin-left:6px;font-size:11px;padding:1px 7px;border:1px solid rgba(255,255,255,.12);
+           color:#d9e6ff;background:rgba(255,255,255,.04);}
+.tier-top2{background:rgba(21,128,61,.22);border-color:rgba(21,128,61,.5);color:#bff7d0}
+.tier-top5{background:rgba(22,163,74,.18);border-color:rgba(22,163,74,.4);color:#b2f5cc}
+.tier-top10{background:rgba(74,222,128,.12);border-color:rgba(22,163,74,.35);color:#d0fadf}
+.tier-top15{background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.35);color:#fef9c3}
+.tier-top20{background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.35);color:#fed7aa}
+.tier-21plus{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.35);color:#fecaca}
 
 /* Game cards */
 .gcard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
@@ -216,6 +300,18 @@ document.addEventListener("DOMContentLoaded", function(){
     away <- html_escape(as.character(row[["awayTeam"]]))
     date <- as.character(row[["start_et"]])
 
+    conf_chip <- function(conf_name) {
+      if (is.null(conf_info$rank_lookup) || length(conf_name) == 0 || is.na(conf_name) || conf_name == "") return("")
+      rk <- conf_info$rank_lookup[[as.character(conf_name)]]
+      tier <- rank_to_tier(if (is.null(rk)) NA_integer_ else rk)
+      cls <- paste("conf-chip", tier$cls)
+      label <- if (nzchar(tier$label)) paste0(" • ", tier$label) else ""
+      sprintf('<span class="%s">%s%s</span>', cls, html_escape(conf_name), label)
+    }
+
+    home_conf_html <- conf_chip(row[["homeConference"]])
+    away_conf_html <- conf_chip(row[["awayConference"]])
+
     fav_home <- !is.na(money) && money >= 0.5
     gcard_cls <- if (fav_home) "gcard fav-home" else "gcard fav-away"
     if (!is.na(money) && (money >= 0.85 || money <= 0.15)) {
@@ -236,14 +332,14 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
     home_html <- if (fav_home) {
-      sprintf('<div class="home"><b class="fav">%s</b></div>', home)
+      sprintf('<div class="home"><b class="fav">%s</b>%s</div>', home, home_conf_html)
     } else {
-      sprintf('<div class="home">%s</div>', home)
+      sprintf('<div class="home">%s%s</div>', home, home_conf_html)
     }
     away_html <- if (!fav_home) {
-      sprintf('<div class="away"><b class="fav">%s</b></div>', away)
+      sprintf('<div class="away"><b class="fav">%s</b>%s</div>', away, away_conf_html)
     } else {
-      sprintf('<div class="away">%s</div>', away)
+      sprintf('<div class="away">%s%s</div>', away, away_conf_html)
     }
 
     paste0(
@@ -425,6 +521,47 @@ schedule_opp_fav_total <- tapply(
     }
   }
 
+  # --- conference power table (ESPN-style top 32) -------------------
+  conf_section <- ""
+
+  if (!is.null(conf_info$conf_tbl)) {
+    conf_tbl <- conf_info$conf_tbl
+
+    rows <- character(nrow(conf_tbl))
+    for (i in seq_len(nrow(conf_tbl))) {
+      rk        <- i
+      conf_name <- html_escape(conf_tbl$conference[i])
+      games     <- conf_tbl$n_games[i]
+      power_val <- sprintf("%.3f", conf_tbl$avg_conf_power[i])
+
+      rows[i] <- paste0(
+        '\n          <tr>',
+        '<td class="conf-rank">', rk, '.</td>',
+        '<td class="conf-name">', conf_name, '</td>',
+        '<td class="conf-games">', games, '</td>',
+        '<td class="conf-power">', power_val, '</td>',
+        '</tr>'
+      )
+    }
+
+    conf_section <- paste0(
+      '\n  <div class="card conf-card"><div class="inner">',
+      '\n    <div class="conf-title"><b>Conference Power Index</b><br/><small>Top 32 conferences by average model power (home/away combined).</small></div>',
+      '\n    <table class="conf-table">',
+      '\n      <thead><tr>',
+      '<th class="conf-rank">#</th>',
+      '<th>Conference</th>',
+      '<th class="conf-games">Games</th>',
+      '<th class="conf-power">Avg Power</th>',
+      '</tr></thead>',
+      '\n      <tbody>',
+      paste(rows, collapse = ""),
+      '\n      </tbody>',
+      '\n    </table>',
+      '\n  </div></div>\n'
+    )
+  }
+
   # --- month sections (chronological) -------------------------------
   month_blocks <- character(length(month_keys))
 
@@ -478,6 +615,7 @@ schedule_opp_fav_total <- tapply(
   full_html <- paste0(
     html_head,
     logo_section,
+    conf_section,
     paste(month_blocks, collapse = ""),
     paste(team_section, collapse = ""),
     html_tail
